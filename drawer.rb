@@ -14,14 +14,14 @@ class Drawer< Gtk::DrawingArea
   end
   
   def draw
-    Thread.new do
+#    Thread.new do
       queue.each do |int,fun|
         @cairo_ct = self.window.create_cairo_context
         puts "drawing"
         sleep int
-        fun.call @cairo_ct        
+        fun.call @cairo_ct
       end
-    end
+#    end
   end
   
 end
