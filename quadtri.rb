@@ -3,7 +3,7 @@
 require 'gtk2'
 require 'cairo'
 require './lib/cg.rb'
-require './QuadTriArea.rb'
+require './drawer.rb'
 
 class QuadTriApp < Gtk::Window
   attr_accessor :area,:vbox
