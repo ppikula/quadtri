@@ -10,9 +10,41 @@ TARGET = quadtri
 TEMPLATE = app
 
 
-SOURCES += main.cpp\
-        quadtri.cpp
+SOURCES += main.cpp \
+    drawingarea.cpp \
+    polydot.cpp \
+    polygon.cpp \
+    drawingscene.cpp
 
-HEADERS  += quadtri.h
+HEADERS  += \
+    drawingarea.h \
+    polydot.h \
+    polygon.h \
+    drawingscene.h
 
-FORMS    += quadtri.ui
+FORMS    +=
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
