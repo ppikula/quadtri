@@ -23,6 +23,7 @@ protected:
 
 private:
     bool dispRect;
+    bool dispLabel;
     QGraphicsItem *parentPolygon;
 
 };

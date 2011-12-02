@@ -1,7 +1,7 @@
 #include <QtGui>
 #include "polydot.h"
 
-PolyDot::PolyDot():dispRect(false)
+PolyDot::PolyDot():dispRect(false),dispLabel(true)
 {
     setCursor(Qt::OpenHandCursor);
     setAcceptedMouseButtons(Qt::LeftButton);
@@ -35,6 +35,19 @@ void PolyDot::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, Q
         painter->setBrush(Qt::NoBrush);
         painter->drawRect(markerRect());
     }
+
+    if(dispLabel){
+        QString label;
+        QString x,y;
+        label += scenePos().x();
+        label += ",";
+        label += scenePos().y();
+        //label += new QString()->setNum(this->scenePos().toPoint().x());
+        label += ", ";
+        label.setNum(this->scenePos().toPoint().y());
+
+        painter->drawText(this->center(),label);
+    }
 }
 
 void PolyDot::mousePressEvent(QGraphicsSceneMouseEvent *)
@@ -52,16 +65,17 @@ void PolyDot::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
     setPos(this->pos() +event->pos());
 
     setCursor(Qt::OpenHandCursor);
+    this->scene()->update();
 }
 
 void PolyDot::mouseReleaseEvent(QGraphicsSceneMouseEvent *)
 {
     setCursor(Qt::OpenHandCursor);
+    this->scene()->update();
 }
 
 void PolyDot::hoverEnterEvent(QGraphicsSceneHoverEvent *event){
     dispRect=true;
-    this->scene()->update();
 
 }
 

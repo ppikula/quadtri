@@ -35,6 +35,7 @@ QRectF Polygon::boundingRect() const
 {
     qreal min_x=100000,min_y=100000,max_x=-1000000,max_y=-1000000;
     QList<PolyDot* >::const_iterator it;
+
     for(it=boundary.constBegin();it!=boundary.constEnd();it++){
         if((*it)->pos().x()<min_x)
             min_x = (*it)->pos().x();
@@ -46,7 +47,6 @@ QRectF Polygon::boundingRect() const
             max_y = (*it)->pos().y();
     }
     QRectF rect(min_x,max_y,max_x-min_x,max_y-min_y);
-    qDebug() <<"Polygon BoundingRect: "<<rect ;
 }
 
 QPainterPath Polygon::shape()const{

@@ -4,15 +4,17 @@ DrawingScene::DrawingScene(Polygon *basePolygon, qreal x, qreal y, qreal width, 
     QGraphicsScene(x,y,width,height),basePolygon(basePolygon)
 {
     addItem(basePolygon);
+
 }
 
 void DrawingScene::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event){
     if(itemAt(event->pos())==NULL && !basePolygon->isClosed()){
-        qDebug() << "double click on scene: adding new poly dot";
+        qDebug() << "double click on scene: adding new poly dot: " << event->scenePos().rx();
         PolyDot *dot =new PolyDot();
-        dot->setPos(event->pos());
+
+        dot->setPos(event->scenePos());
         basePolygon->addBoundaryPoint(dot);
-        basePolygon->update();
+        update();
     }else
     {
         qDebug() << "double click on scene: cannot add new poly dot beacse sth is this place: "<<itemAt(event->pos());
