@@ -49,16 +49,16 @@ QRectF Polygon::boundingRect() const
     QRectF rect(min_x,max_y,max_x-min_x,max_y-min_y);
 }
 
-QPainterPath Polygon::shape()const{
-    QPainterPath path;
-    QPolygonF polyF(boundary.size());
-    QList<PolyDot*>::const_iterator it;
-    for(it=boundary.begin();it!=boundary.end();it++){
-        polyF.append((*it)->pos());
-    }
-    path.addPolygon(polyF);
-    return path;
-}
+//QPainterPath Polygon::shape()const{
+//    QPainterPath path;
+//    QPolygonF polyF(boundary.size());
+//    QList<PolyDot*>::const_iterator it;
+//    for(it=boundary.begin();it!=boundary.end();it++){
+//        polyF.append((*it)->pos());
+//    }
+//    path.addPolygon(polyF);
+//    return path;
+//}
 
 bool Polygon::isClosed(){
     return closed;

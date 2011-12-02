@@ -5,7 +5,7 @@ DrawingArea::DrawingArea(QWidget *parent) :
     QWidget(parent),currentStep(NULL)
 {
     basePolygon = new Polygon();
-    scene = new DrawingScene(basePolygon,0, 0, 800, 600);
+    scene = new DrawingScene(basePolygon,0, 0, 600, 600);
 
     view = new QGraphicsView(scene);
     view->setRenderHint(QPainter::Antialiasing);
@@ -39,7 +39,6 @@ DrawingArea::DrawingArea(QWidget *parent) :
     connect(startStopBut,SIGNAL(clicked()),this,SLOT(startStopPoly()));
     connect(triangulateBut,SIGNAL(clicked()),this,SLOT(triangulate()));
 }
-
 void DrawingArea::startStep(float time){
     if (currentStep != NULL){
         throw "step didn't finished!";
@@ -69,7 +68,13 @@ void DrawingArea::show_all(){
 }
 
 void DrawingArea::startStopPoly(){
-    qDebug() << "Start/Stop clicked";
+    if(basePolygon->isClosed()){
+        basePolygon->open();
+        startStopBut->setText("Close");
+    }else{
+        basePolygon->close();
+        startStopBut->setText("Open");
+    }
 }
 
 void DrawingArea::triangulate(){

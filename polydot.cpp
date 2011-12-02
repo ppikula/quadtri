@@ -38,15 +38,14 @@ void PolyDot::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, Q
 
     if(dispLabel){
         QString label;
-        QString x,y;
-        label += scenePos().x();
+        QString y;
+        label.setNum(center().x());
         label += ",";
-        label += scenePos().y();
-        //label += new QString()->setNum(this->scenePos().toPoint().x());
-        label += ", ";
-        label.setNum(this->scenePos().toPoint().y());
+        y.setNum(center().y());
+        label += y;
 
-        painter->drawText(this->center(),label);
+        //qDebug() <<  "Center: " << center()<<", pos: "<< pos() << ", scenePos: " << scenePos();
+        painter->drawText(QPointF(0,0),label);
     }
 }
 
@@ -55,35 +54,27 @@ void PolyDot::mousePressEvent(QGraphicsSceneMouseEvent *)
     setCursor(Qt::ClosedHandCursor);
 }
 
-void PolyDot::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
-{
-    if (QLineF(event->screenPos(), event->buttonDownScreenPos(Qt::LeftButton))
-            .length() < QApplication::startDragDistance()) {
-        return;
-    }
-
+void PolyDot::mouseMoveEvent(QGraphicsSceneMouseEvent *event){
     setPos(this->pos() +event->pos());
-
     setCursor(Qt::OpenHandCursor);
-    this->scene()->update();
+    scene()->update();
 }
 
-void PolyDot::mouseReleaseEvent(QGraphicsSceneMouseEvent *)
-{
+void PolyDot::mouseReleaseEvent(QGraphicsSceneMouseEvent *){
     setCursor(Qt::OpenHandCursor);
-    this->scene()->update();
+    scene()->update();
 }
 
 void PolyDot::hoverEnterEvent(QGraphicsSceneHoverEvent *event){
     dispRect=true;
-
+    scene()->update();
 }
 
 void PolyDot::hoverLeaveEvent(QGraphicsSceneHoverEvent *event){
     dispRect=false;
-    this->scene()->update();
+    scene()->update();
 }
 
-void PolyDot::hoverMoveEvent(QGraphicsSceneHoverEvent *event){
-
+void PolyDot::hoverMoveEvent(QGraphicsSceneHoverEvent *event){    
+    scene()->update();
 }

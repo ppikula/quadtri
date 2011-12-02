@@ -20,7 +20,7 @@ public slots:
 protected:
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
-    QPainterPath shape() const;
+//    QPainterPath shape() const;
 private:
     bool closed;
 
