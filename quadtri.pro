@@ -11,8 +11,12 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        quadtri.cpp
+        quadtri.cpp \
+    quadtree.cpp
 
-HEADERS  += quadtri.h
+HEADERS  += quadtri.h \
+    quadtree.h
 
 FORMS    += quadtri.ui
+
+
