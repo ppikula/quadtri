@@ -1,16 +1,20 @@
 #include "polygon.h"
 
-Polygon::Polygon(QObject *parent):closed(false)
-{
-    PolyDot *firstdot = new PolyDot();
-    PolyDot *secondDot = new PolyDot();
-    PolyDot *thirdDot = new PolyDot();
-    firstdot->setPos(50,50);
-    secondDot->setPos(44,30);
-    thirdDot->setPos(77,33);
-    addBoundaryPoint(firstdot);
-    addBoundaryPoint(secondDot);
-    addBoundaryPoint(thirdDot);
+Polygon::Polygon(Polygon *basePolygon):QGraphicsItem(basePolygon),basePolygon(basePolygon),closed(true){
+    if(basePolygon==NULL){
+        holesPolies.append(new Polygon(this));
+    }
+}
+
+Polygon::~Polygon(){
+    QList<Polygon* >::iterator it2;
+    for(it2=holes().begin();it2!=holes().end();it2++){
+        delete *it2;
+    }
+    QList<PolyDot* >::iterator it;
+    for(it=boundary.end();it!=boundary.end();it++){
+        delete *it;
+    }
 }
 
 void Polygon::open(){
@@ -35,7 +39,6 @@ QRectF Polygon::boundingRect() const
 {
     qreal min_x=100000,min_y=100000,max_x=-1000000,max_y=-1000000;
     QList<PolyDot* >::const_iterator it;
-
     for(it=boundary.constBegin();it!=boundary.constEnd();it++){
         if((*it)->pos().x()<min_x)
             min_x = (*it)->pos().x();
@@ -47,6 +50,7 @@ QRectF Polygon::boundingRect() const
             max_y = (*it)->pos().y();
     }
     QRectF rect(min_x,max_y,max_x-min_x,max_y-min_y);
+    return rect;
 }
 
 //QPainterPath Polygon::shape()const{
@@ -64,6 +68,13 @@ bool Polygon::isClosed(){
     return closed;
 }
 
+bool Polygon::isInner(){
+    return basePolygon != NULL;
+}
+
+QList<Polygon*> & Polygon::holes(){
+    return holesPolies;
+}
 
 void Polygon::addBoundaryPoint(PolyDot *dot){
     dot->setParentItem(this);
@@ -72,16 +83,33 @@ void Polygon::addBoundaryPoint(PolyDot *dot){
 
 void Polygon::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
+    Q_UNUSED(option);
+    Q_UNUSED(widget);
+
     QList<PolyDot*>::iterator it;
     PolyDot *prev = *boundary.begin();
-    for(it = boundary.begin()+1;it!=boundary.end();++it){
-        painter->setPen(Qt::blue);
+    QPolygonF polygon;
+
+    for(it = boundary.begin();it!=boundary.end();++it){
         painter->drawLine(prev->center(),(*it)->center());
-        prev = *it;
+        polygon << (*it)->center();
     }
-    if(closed){
+
+    if(!isInner()){
         painter->setPen(Qt::blue);
-        painter->drawLine(boundary.last()->center(),boundary.first()->center());
+        painter->setBrush(Qt::green);
+    }else{
+        painter->setPen(Qt::blue);
+        painter->setBrush(Qt::black);
+    }
+
+    if(isClosed() || isInner()){
+        painter->drawPolygon(polygon);
+    }else
+    {
+        painter->drawPolyline(polygon);
     }
 }
+
+
 

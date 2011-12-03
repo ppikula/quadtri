@@ -7,13 +7,29 @@ DrawingArea::DrawingArea(QWidget *parent) :
     basePolygon = new Polygon();
     scene = new DrawingScene(basePolygon,0, 0, 600, 600);
 
+    PolyDot *firstdot = new PolyDot();
+    PolyDot *secondDot = new PolyDot();
+    PolyDot *thirdDot = new PolyDot();
+
+    firstdot->setPos(50,50);
+    secondDot->setPos(44,30);
+    thirdDot->setPos(77,33);
+
+    basePolygon->addBoundaryPoint(firstdot);
+    basePolygon->addBoundaryPoint(secondDot);
+    basePolygon->addBoundaryPoint(thirdDot);
+
     view = new QGraphicsView(scene);
     view->setRenderHint(QPainter::Antialiasing);
     view->setViewportUpdateMode(QGraphicsView::BoundingRectViewportUpdate);
     view->setBackgroundBrush(QColor(0,0,0));
 
     startStopBut =new QPushButton();
-    startStopBut->setText("Stop");
+    startStopBut->setText("Open");
+
+    startStopInner = new QPushButton();
+    startStopInner->setText("Open Inner");
+    //startStopInner->setDisabled(true);
 
     triangulateBut = new QPushButton();
     triangulateBut->setText("Triangualte");
@@ -23,13 +39,12 @@ DrawingArea::DrawingArea(QWidget *parent) :
 
     QHBoxLayout *buttonsLay = new QHBoxLayout();
     buttonsLay->addWidget(startStopBut);
+    buttonsLay->addWidget(startStopInner);
     buttonsLay->addWidget(triangulateBut);
-
 
     QVBoxLayout *bottomLay = new QVBoxLayout();
     bottomLay->addWidget(slider);
     bottomLay->addLayout(buttonsLay);
-
 
     QVBoxLayout *lay = new QVBoxLayout();
     lay->addWidget(view);
@@ -38,6 +53,7 @@ DrawingArea::DrawingArea(QWidget *parent) :
 
     connect(startStopBut,SIGNAL(clicked()),this,SLOT(startStopPoly()));
     connect(triangulateBut,SIGNAL(clicked()),this,SLOT(triangulate()));
+    connect(startStopInner,SIGNAL(clicked()),this,SLOT(startStopInnerPloly()));
 }
 void DrawingArea::startStep(float time){
     if (currentStep != NULL){
@@ -71,9 +87,25 @@ void DrawingArea::startStopPoly(){
     if(basePolygon->isClosed()){
         basePolygon->open();
         startStopBut->setText("Close");
+        startStopInner->setEnabled(false);
     }else{
         basePolygon->close();
         startStopBut->setText("Open");
+        startStopInner->setEnabled(true);
+    }
+}
+
+void DrawingArea::startStopInnerPloly(){
+    if(basePolygon->holes().last()->isClosed()){
+        basePolygon->holes().last()->open();
+        startStopInner->setText("Close");
+        startStopBut->setEnabled(false);
+    }else
+    { basePolygon->holes().last()->close();
+        Polygon *newPoly = new Polygon(basePolygon);
+        basePolygon->holes().append(newPoly);
+        startStopInner->setText("Open");
+        startStopBut->setEnabled(true);
     }
 }
 

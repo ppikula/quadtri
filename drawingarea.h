@@ -27,11 +27,13 @@ public:
 
     QGraphicsView *view;
     QGraphicsScene *scene;
-    QPushButton *startStopBut,*triangulateBut;
+    QPushButton *startStopBut,*startStopInner,*triangulateBut;
+
     QSlider *slider;
 
 private slots:
     void startStopPoly();
+    void startStopInnerPloly();
     void triangulate();
 
 signals:
@@ -40,8 +42,6 @@ public slots:
 
 private:
     Polygon *basePolygon;
-
-
 };
 
 #endif // DRAWINGAREA_H
