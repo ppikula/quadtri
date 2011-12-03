@@ -1,42 +1,62 @@
-#include <QtGui/QApplication>
-#include <QGraphicsView>
-#include <QGraphicsScene>
-#include <QGraphicsEllipseItem>
-#include <QQueue>
-#include <QDebug>
+#include <QtGui>
 #include "drawingarea.h"
 #include "polydot.h"
 #include "polygon.h"
 
 
 
+void clicked(){
+    qDebug() << "triangualte clicked!";
+}
+
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
     DrawingArea *area = new DrawingArea();
-    area->show();
 
-//    Polygon *poly = new Polygon();
-//    PolyDot *dot = new PolyDot();
-//    PolyDot *dot2 = new PolyDot();
-//    PolyDot *dot3 = new PolyDot();
+    QPushButton *triangualteBut = new QPushButton();
+    triangualteBut->setText("Triangulate");
 
-//    dot->setPos(50,50);
-//    dot2->setPos(100,140);
-//    dot3->setPos(30,78);
+    QVBoxLayout *lay = new QVBoxLayout();
+    lay->addWidget(area);
+    lay->addWidget(triangualteBut);
 
-//    poly->setPos(10,10);
-//    poly->addBoundaryPoint(dot);
-//    poly->addBoundaryPoint(dot2);
-//    poly->addBoundaryPoint(dot3);
-//    poly->close();
 
-//    area->scene->addItem(poly);
-//    area->startStep(0.1);
-//    area->addToQueue(dot);
-//    area->stopStep();
+    QWidget window;
+    window.setLayout(lay);
+    window.show();
 
+        for(int i=0;i<50;i++){
+            area->startStep(0.1);
+            for(int j=1;j<qrand()%10;j++){
+                qreal ax = 100+qrand()%300;
+                qreal ay = 100+qrand()%300;
+                qreal bx = 100+qrand()%300;
+                qreal by = 100+qrand()%300;
+                QGraphicsLineItem *line = new QGraphicsLineItem(QLineF(ax,ay,bx,by));
+                QPen pen(Qt::yellow);
+                line->setPen(pen);
+                area->addToQueue(line);
+            }
+            area->stopStep();
+        }
 
     return a.exec();
 }
+
+//void DrawingArea::triangulate(){
+//    for(int i=0;i<50;i++){
+//        SceneStep *step = new SceneStep();
+//        for(int j=1;j<qrand()%10;j++){
+//            qreal ax = 100+qrand()%300;
+//            qreal ay = 100+qrand()%300;
+//            qreal bx = 100+qrand()%300;
+//            qreal by = 100+qrand()%300;
+//            QGraphicsLineItem *line = new QGraphicsLineItem(QLineF(ax,ay,bx,by));
+//            step->items.append(line);
+//        }
+//        scene->addSceneStep(step);
+//    }
+//    slider->setMaximum(50);
+//}

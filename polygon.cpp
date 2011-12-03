@@ -6,6 +6,7 @@ Polygon::Polygon(Polygon *basePolygon):QGraphicsItem(basePolygon),basePolygon(ba
     }
 }
 
+
 Polygon::~Polygon(){
     QList<Polygon* >::iterator it2;
     for(it2=holes().begin();it2!=holes().end();it2++){

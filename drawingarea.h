@@ -3,45 +3,44 @@
 
 #include <QtGui>
 #include "polygon.h"
-
+#include "drawingscene.h"
+#include "drawingstep.h"
 class DrawingArea : public QWidget
 {
     Q_OBJECT
-
 public:    
-    struct GraphicsStep {
-        float time;
-        QQueue<QGraphicsItem*> items;
-        GraphicsStep(float time):time(time){}
-    };
-
     explicit DrawingArea(QWidget *parent = 0);
 
     void startStep(float time);
     void stopStep();
     void addToQueue(QGraphicsItem *item);
-    void show_all();
+    Polygon * polygon();
 
-    QQueue<GraphicsStep*> renderQueue;
-    GraphicsStep *currentStep;
+signals:
+    void polyChanged(Polygon &poly);
 
-    QGraphicsView *view;
-    QGraphicsScene *scene;
-    QPushButton *startStopBut,*startStopInner,*triangulateBut;
 
-    QSlider *slider;
 
 private slots:
     void startStopPoly();
     void startStopInnerPloly();
-    void triangulate();
+    void viewSliderChanged(int v);
 
 signals:
 
 public slots:
 
 private:
+
+    /* Controls */
+    QGraphicsView *view;
+    DrawingScene *scene;
+    QPushButton *startStopBut,*startStopInner;
+    QSlider *slider;
+
+    /* Logic items */
     Polygon *basePolygon;
+    QList<DrawingStep*> renderQueue;
 };
 
 #endif // DRAWINGAREA_H

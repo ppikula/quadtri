@@ -14,15 +14,23 @@ SOURCES += main.cpp \
     drawingarea.cpp \
     polydot.cpp \
     polygon.cpp \
-    drawingscene.cpp
+    drawingscene.cpp \
+    drawingstep.cpp
 
 HEADERS  += \
     drawingarea.h \
     polydot.h \
     polygon.h \
-    drawingscene.h
+    drawingscene.h \
+    drawingstep.h
 
 FORMS    +=
+
+
+
+
+
+
 
 
 

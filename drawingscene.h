@@ -12,6 +12,7 @@ public:
 signals:
 
 public slots:
+
 protected:
     void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event);
 
