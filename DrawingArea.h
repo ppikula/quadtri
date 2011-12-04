@@ -15,9 +15,8 @@ public:
     void stopStep();
     void addToQueue(QGraphicsItem *item);
     Polygon * polygon();
+    QString polyString();
 
-signals:
-    void polyChanged(Polygon &poly);
 
 private slots:
     void startStopPoly();
@@ -25,6 +24,7 @@ private slots:
     void viewSliderChanged(int v);
 
 signals:
+    void polyChanged(Polygon *poly,QList<Polygon*> holes);
 
 public slots:
     void polyUpdate();

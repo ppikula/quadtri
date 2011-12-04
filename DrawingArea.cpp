@@ -74,7 +74,8 @@ Polygon * DrawingArea::polygon(){
 
 /* Slots */
 void DrawingArea::polyUpdate(){
-    qDebug() << "polyUpdate from area";
+    emit polyChanged(basePolygon,holes);
+    qDebug() << polyString();
 }
 
 
@@ -130,4 +131,16 @@ void DrawingArea::sceneDoubleCliked(QGraphicsSceneMouseEvent *event){
         }
     }
     scene->update();
+}
+
+QString DrawingArea::polyString(){
+    QString out = basePolygon->toString();
+
+    out +="\n\n";
+    foreach(Polygon *hole,holes){
+        out +=hole->toString();
+        out +="\n\n";
+    }
+    out.chop(2);
+    return out;
 }

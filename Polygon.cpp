@@ -113,6 +113,14 @@ void Polygon::dotUpdate(){
 
 QString Polygon::toString(){
     QString out;
+    foreach (PolyDot *dot, boundary) {
+        out += QString::number(dot->center().x());
+        out += ";";
+        out += QString::number(dot->center().y());
+        out += "\n";
+    }
+    out.chop(1);
+    return out;
 }
 
 
