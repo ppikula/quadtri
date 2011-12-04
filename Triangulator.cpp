@@ -23,6 +23,7 @@ void Triangulator::triangulate(){
 
     quad_tree.insertPolygon(poly);
     //quad_tree.insert(poly-);
+    quad_tree.Triangulate();
     quad_tree.draw(area);
 
     /*for(int i=0;i<50;i++){

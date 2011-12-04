@@ -5,7 +5,7 @@
 #include <algorithm>
 #include "Triangulator.h"
 
-uint QuadTreeNode::MAX_LEVEL = 20;
+uint QuadTreeNode::MAX_LEVEL = 10;
 
 static int direction(const Point& a, const Point& b,const Point& c){
     double res = (a.x-c.x)*(b.y-c.y) -(b.x-c.x)*(a.y-c.y);
@@ -20,6 +20,24 @@ bool Edge::intersects(Edge* e)
     if( direction(*(e->b),*(e->e),*(this->b)) == direction(*(e->b),*(e->e),*(this->e))) return false;
     return true;
 }
+
+void Triangle::draw(DrawingArea* area)
+{
+    QGraphicsLineItem* l1 = new QGraphicsLineItem(QLineF(a->x,a->y,b->x,b->y));
+    QGraphicsLineItem* l2 = new QGraphicsLineItem(QLineF(b->x,b->y,c->x,c->y));
+    QGraphicsLineItem* l3 = new QGraphicsLineItem(QLineF(c->x,c->y,a->x,a->y));
+
+    QPen pen(Qt::cyan);
+    l1->setPen(pen);
+    l2->setPen(pen);
+    l3->setPen(pen);
+
+    area->addToQueue(l1);
+    area->addToQueue(l2);
+    area->addToQueue(l3);
+}
+
+///QuadTree Node
 
 QuadTreeNode::QuadTreeNode(const Point& p, double size):lu_corner(p),level(0),size(size),parent(0)
 {
@@ -145,6 +163,16 @@ void QuadTreeNode::subdivide()
             }
             insertedPoint=NULL;
         }
+
+        if( insertedEdge )
+        {
+            Edge* e =insertedEdge;
+            if(NW->contains(e))NW->insert(e);
+            if(NE->contains(e))NE->insert(e);
+            if(SE->contains(e))SE->insert(e);
+            if(SW->contains(e))SW->insert(e);
+            insertedPoint=NULL;
+        }
     }
 }
 
@@ -205,17 +233,23 @@ void QuadTreeNode::insert(Edge* e)
     if( isLeaf() && !insertedEdge && !insertedPoint ){
         insertedEdge=e;
     }else{
-        subdivide();//wont subdivide quadrant already divided
-        if(NW->contains(e))NW->insert(e);
-        if(NE->contains(e))NE->insert(e);
-        if(SE->contains(e))SE->insert(e);
-        if(SW->contains(e))SW->insert(e);
+        if(!insertedPoint)//if in leaf does not exist point
+        {
+            subdivide();//wont subdivide quadrant already divided
+            if(NW->contains(e))NW->insert(e);
+            if(NE->contains(e))NE->insert(e);
+            if(SE->contains(e))SE->insert(e);
+            if(SW->contains(e))SW->insert(e);
+        }
     }
 }
 
 bool QuadTreeNode::contains(Edge* e) const
 {
-    Point pts[4];
+    Point pts[4]={lu_corner,
+                  Point(lu_corner.x+size,lu_corner.y),
+                  Point(lu_corner.x+size,lu_corner.y+size),
+                  Point(lu_corner.x,lu_corner.y+size)};
     Edge  edg[4];
 
     for(int i=0;i<4;++i){
@@ -271,6 +305,13 @@ void QuadTreeNode::draw(DrawingArea *area)
 QuadTree::QuadTree(const Point &p, uint size)
 {
     root.reset(new QuadTreeNode(p,size));
+    points.clear();
+    edges.clear();
+
+    //blah FIMXE!!!
+    edges.reserve(100000);
+    points.reserve(1000000);
+    //qDebug()<<"===========";
 }
 
 uint QuadTree::depth()
@@ -301,19 +342,84 @@ void QuadTree::Triangulate()
 
     // iterate over leaves and create triangles
     // analyse neighbours and create triangles
-    /*std::list<QuadTreeNode*> it=leaves.begin();
+    std::list<QuadTreeNode*>::iterator it=leaves.begin();
     for(;it!=leaves.end();it++)
     {
+        QuadTreeNode* n=*it;
+        Point *p1=new Point(n->lu_corner);
+        Point *p2=new Point(n->lu_corner.x+n->size,n->lu_corner.y);
+        Point *p3=new Point(n->lu_corner.x,n->lu_corner.y+n->size);
+        Point *p4=new Point(n->lu_corner.x+n->size,n->lu_corner.y+n->size);
 
-    }*/
+        if(n->insertedPoint){
+           // tris.push_back(Triangle(p1,n->insertedPoint,p2));
+           // tris.push_back(Triangle(p1,p3,n->insertedPoint));
+           // tris.push_back(Triangle(p3,p4,n->insertedPoint));
+           // tris.push_back(Triangle(p4,p2,n->insertedPoint));
+        }else{
+            applyTemplateTriangulation(n);
+        }
+
+
+    }
 
     //TODO: filtering and mesh opitimizations
 
 }
 
+void QuadTree::applyTemplateTriangulation(QuadTreeNode* n)
+{
+    Point *p[8];
+    p[0]=new Point(n->lu_corner);
+    p[1]=new Point(n->lu_corner.x+n->size,n->lu_corner.y);
+    p[2]=new Point(n->lu_corner.x,n->lu_corner.y+n->size);
+    p[3]=new Point(n->lu_corner.x+n->size,n->lu_corner.y+n->size);
+
+    p[4]=new Point(n->lu_corner.x+n->size/2.0,n->lu_corner.y);
+    p[5]=new Point(n->lu_corner.x+n->size/2.0,n->lu_corner.y+n->size/2.0);
+    p[6]=new Point(n->lu_corner.x+n->size/2.0,n->lu_corner.y+n->size);
+    p[7]=new Point(n->lu_corner.x,n->lu_corner.y+n->size+n->size/2.0);
+
+
+
+    int nn=0,ss=0,ww=0,ee=0;
+    if( n->N )nn++;
+    if( n->S )ss++;
+    if( n->W )ee++;
+    if( n->E )ww++;
+
+    int sum =nn+ss+ww+ee;
+
+    if( sum==0 )
+    {
+
+    }else if(sum==4 ){
+        tris.push_back(Triangle(p[0],p[2],p[1]));
+        tris.push_back(Triangle(p[2],p[3],p[1]));
+    }else if(sum==3){
+        //2przypadki
+    }else if(sum==2)
+    {
+
+    }
+
+    //16 przypadków ;/
+    /*if ( hN && hS && hW && hE ){
+        tris.push_back(Triangle(p1,p4,p2));
+        tris.push_back(Triangle(p1,p3,p4));
+    }*/
+
+
+
+
+
+
+
+}
+
 void QuadTree::draw(DrawingArea *area)
 {
-    area->startStep(10);
+    area->startStep(1);
 
     QGraphicsRectItem* quad=new QGraphicsRectItem(QRectF(root->lu_corner.x,root->lu_corner.y,
                                                          root->size,root->size));
@@ -321,9 +427,14 @@ void QuadTree::draw(DrawingArea *area)
     quad->setPen(pen);
     area->addToQueue(quad);
     root->draw(area);
-
-
     area->stopStep();
+
+    area->startStep(1);
+    for(int i=0;i<tris.size();++i)
+        tris[i].draw(area);
+    area->stopStep();
+
+
 }
 
 void QuadTree::insertPolygon(Polygon* poly)
@@ -338,17 +449,17 @@ void QuadTree::insertPolygon(Polygon* poly)
     //iterate over poly and add points
     QList<PolyDot* >::const_iterator it;
 
-    points.clear();
-    edges.clear();
-
-    //blah FIMXE!!!
-    edges.reserve(100000);
-    points.reserve(1000000);
-    //qDebug()<<"===========";
-
     for(it=poly->boundary.constBegin();it!=poly->boundary.constEnd();it++){
         insert(Point((*it)->center().x(),(*it)->center().y()));
     }
+
+    for(int i=0;i<points.size();++i)
+    {
+        edges.push_back(Edge(&points[i],&points[(i+1)%points.size()]));
+        root->insert(&edges.back());
+    }
+
+
 }
 
 void QuadTree::insert(const Point& p)
