@@ -3,10 +3,11 @@
 #include "DrawingStep.h"
 
 DrawingArea::DrawingArea(QWidget *parent) :
-    QWidget(parent)//,currentStep(NULL)
+    QWidget(parent)
 {
     basePolygon = new Polygon();
-    scene = new DrawingScene(basePolygon,0, 0, 600, 600);
+    scene = new DrawingScene(0, 0, 600, 600);
+    scene->addItem(basePolygon);
 
     basePolygon->addBoundaryPoint(QPointF(100,100));
     basePolygon->addBoundaryPoint(QPointF(200,200));
@@ -44,7 +45,7 @@ DrawingArea::DrawingArea(QWidget *parent) :
     lay->addLayout(bottomLay);
     setLayout(lay);
 
-    connect(scene,SIGNAL(polyChanged()),this,SLOT(polyUpdate()));
+    connect(basePolygon,SIGNAL(polyChanged()),this,SLOT(polyUpdate()));
     connect(scene,SIGNAL(doubleClicked(QGraphicsSceneMouseEvent*)),this,SLOT(sceneDoubleCliked(QGraphicsSceneMouseEvent*)));
     connect(startStopBut,SIGNAL(clicked()),this,SLOT(startStopPoly()));
     connect(startStopInner,SIGNAL(clicked()),this,SLOT(startStopInnerPloly()));
@@ -75,7 +76,6 @@ Polygon * DrawingArea::polygon(){
 /* Slots */
 void DrawingArea::polyUpdate(){
     emit polyChanged(basePolygon,holes);
-    qDebug() << polyString();
 }
 
 
@@ -119,6 +119,7 @@ void DrawingArea::viewSliderChanged(int v){
     for(int i=0;i<v;++i){
         renderQueue[i]->setVisible(true);
     }
+    scene->update();
 }
 
 void DrawingArea::sceneDoubleCliked(QGraphicsSceneMouseEvent *event){

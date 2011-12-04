@@ -15,14 +15,14 @@ public:
     void addBoundaryPoint(QPointF pos);
 
     //open/close poly for edition
-    void close();
-    void open();
+    void close() { closed = true; }
+    void open() { closed = false;}
 
     /* is closed for edition*/
-    bool isClosed();
+    bool isClosed() { return closed;}
 
     /* is this inner poly of some other poly? */
-    bool isInner();
+    bool isInner() {return inner;}
 
     QString toString();
 

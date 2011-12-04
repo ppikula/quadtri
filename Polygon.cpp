@@ -10,24 +10,6 @@ Polygon::~Polygon(){
     }
 }
 
-void Polygon::open(){
-    if(closed){
-        closed = false;
-    }else
-    {
-        qDebug()<<"it is already opened!";
-    }
-}
-
-void Polygon::close(){
-    if(!closed){
-        closed = true;
-    }else
-    {
-        qDebug()<<"it is already closed!";
-    }
-}
-
 QRectF Polygon::boundingRect() const
 {
     qreal min_x=100000,min_y=100000,max_x=-1000000,max_y=-1000000;
@@ -44,25 +26,6 @@ QRectF Polygon::boundingRect() const
     }
     QRectF rect(min_x,max_y,max_x-min_x,max_y-min_y);
     return rect;
-}
-
-//QPainterPath Polygon::shape()const{
-//    QPainterPath path;
-//    QPolygonF polyF(boundary.size());
-//    QList<PolyDot*>::const_iterator it;
-//    for(it=boundary.begin();it!=boundary.end();it++){
-//        polyF.append((*it)->pos());
-//    }
-//    path.addPolygon(polyF);
-//    return path;
-//}
-
-bool Polygon::isClosed(){
-    return closed;
-}
-
-bool Polygon::isInner(){
-    return inner;
 }
 
 void Polygon::addBoundaryPoint(QPointF pos){
@@ -107,7 +70,6 @@ void Polygon::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, Q
 }
 
 void Polygon::dotUpdate(){
-    qDebug() << "polyChanged from polygon!";
     emit polyChanged();
 }
 

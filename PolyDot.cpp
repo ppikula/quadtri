@@ -3,10 +3,9 @@
 
 PolyDot::PolyDot():QGraphicsItem(),dispRect(false),dispLabel(true)
 {
-    setCursor(Qt::OpenHandCursor);
     setAcceptedMouseButtons(Qt::LeftButton);
-    acceptHoverEvents();
     setAcceptHoverEvents(true);
+    acceptHoverEvents();
 }
 
 QPointF PolyDot::center(){
@@ -54,7 +53,6 @@ void PolyDot::mousePressEvent(QGraphicsSceneMouseEvent *)
 
 void PolyDot::mouseMoveEvent(QGraphicsSceneMouseEvent *event){
     setPos(this->pos() +event->pos());
-    setCursor(Qt::OpenHandCursor);
     scene()->update();
     emit dotMoved();
 }
@@ -65,7 +63,8 @@ void PolyDot::mouseReleaseEvent(QGraphicsSceneMouseEvent *){
     emit dotMoved();
 }
 
-void PolyDot::hoverEnterEvent(QGraphicsSceneHoverEvent *event){
+void PolyDot::hoverEnterEvent(QGraphicsSceneHoverEvent *event){    
+    setCursor(Qt::OpenHandCursor);
     dispRect=true;
     scene()->update();
 }
