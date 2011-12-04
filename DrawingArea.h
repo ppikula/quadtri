@@ -14,9 +14,13 @@ public:
     void startStep(float time);
     void stopStep();
     void addToQueue(QGraphicsItem *item);
-    Polygon * polygon();
-    QString polyString();
 
+    void clearAll();
+    void clear();
+
+    Polygon *polygon() {return basePolygon;}
+    QList<Polygon*> holesInPoly() {return holes;}
+    QString polyString();
 
 private slots:
     void startStopPoly();

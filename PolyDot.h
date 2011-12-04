@@ -6,6 +6,7 @@
 class PolyDot : public QObject,public QGraphicsItem
 {
     Q_OBJECT
+    Q_INTERFACES(QGraphicsItem)
 public:
     PolyDot();
     QRectF boundingRect() const;
@@ -29,7 +30,6 @@ private:
     bool dispRect;
     bool dispLabel;
     QGraphicsItem *parentPolygon;
-
 };
 
 #endif // POLYDOT_H

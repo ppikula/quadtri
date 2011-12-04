@@ -12,12 +12,20 @@ HEADERS += DrawingArea.h \
            DrawingScene.h \
            DrawingStep.h \
            PolyDot.h \
-           Polygon.h
+           Polygon.h \
+    Triangulator.h
 SOURCES += DrawingArea.cpp \
            DrawingScene.cpp \
            DrawingStep.cpp \
            main.cpp \
            PolyDot.cpp \
-           Polygon.cpp
+           Polygon.cpp \
+    Triangulator.cpp
+
+
+
+
+
+
 
 

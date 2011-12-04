@@ -68,11 +68,6 @@ void DrawingArea::addToQueue(QGraphicsItem *item){
     renderQueue.last()->addToGroup(item);
 }
 
-Polygon * DrawingArea::polygon(){
-    return basePolygon;
-}
-
-
 /* Slots */
 void DrawingArea::polyUpdate(){
     emit polyChanged(basePolygon,holes);
@@ -144,4 +139,24 @@ QString DrawingArea::polyString(){
     }
     out.chop(2);
     return out;
+}
+
+void DrawingArea::clear(){
+    foreach(DrawingStep *step,renderQueue){
+        scene->removeItem(step);
+        delete step;
+    }
+    renderQueue.clear();
+    slider->setMaximum(0);
+}
+
+void DrawingArea::clearAll(){
+    startStopBut->setText("Open");
+    startStopInner->setText("Add hole");
+    scene->clear();
+
+    basePolygon = new Polygon();
+    holes.clear();
+    renderQueue.clear();
+    slider->setMaximum(0);
 }

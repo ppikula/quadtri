@@ -1,6 +1,6 @@
 #include "Polygon.h"
 
-Polygon::Polygon(bool inner):QGraphicsItem(),inner(inner),closed(true){
+Polygon::Polygon(bool inner):QGraphicsItem(),closed(true),inner(inner){
 }
 
 Polygon::~Polygon(){

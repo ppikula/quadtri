@@ -64,16 +64,19 @@ void PolyDot::mouseReleaseEvent(QGraphicsSceneMouseEvent *){
 }
 
 void PolyDot::hoverEnterEvent(QGraphicsSceneHoverEvent *event){    
+    Q_UNUSED(event)
     setCursor(Qt::OpenHandCursor);
     dispRect=true;
     scene()->update();
 }
 
 void PolyDot::hoverLeaveEvent(QGraphicsSceneHoverEvent *event){
+    Q_UNUSED(event)
     dispRect=false;
     scene()->update();
 }
 
-void PolyDot::hoverMoveEvent(QGraphicsSceneHoverEvent *event){    
+void PolyDot::hoverMoveEvent(QGraphicsSceneHoverEvent *event){
+    Q_UNUSED(event)
     scene()->update();
 }

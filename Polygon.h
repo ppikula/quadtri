@@ -7,6 +7,7 @@
 class Polygon : public QObject, public QGraphicsItem
 {
     Q_OBJECT
+    Q_INTERFACES(QGraphicsItem)
 public:
      Polygon(bool inner=false);
      ~Polygon();
