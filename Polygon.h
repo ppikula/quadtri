@@ -2,16 +2,17 @@
 #define POLYGON_H
 
 #include <QtGui>
-#include "polydot.h"
+#include "PolyDot.h"
 
-class Polygon : public QGraphicsItem
+class Polygon : public QObject, public QGraphicsItem
 {
+    Q_OBJECT
 public:
-    explicit Polygon(Polygon *basePolygon = 0);
+     Polygon(bool inner=false);
      ~Polygon();
 
     QRectF boundingRect() const;
-    void addBoundaryPoint(PolyDot *dot);
+    void addBoundaryPoint(QPointF pos);
 
     //open/close poly for edition
     void close();
@@ -23,22 +24,23 @@ public:
     /* is this inner poly of some other poly? */
     bool isInner();
 
-    /*list of inner polygons which create holes in main poly*/
-    QList<Polygon*> & holes();
+    QString toString();
+
 signals:
+    void polyChanged();
 
 public slots:
+    void dotUpdate();
 
 protected:
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
-//    QPainterPath shape() const;
 private:
     Polygon *basePolygon;
     bool closed;
+    bool inner;
 
     QList<PolyDot*> boundary;
-    QList<Polygon*> holesPolies;
 
 };
 

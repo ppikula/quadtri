@@ -1,17 +1,9 @@
-#include "polygon.h"
+#include "Polygon.h"
 
-Polygon::Polygon(Polygon *basePolygon):QGraphicsItem(basePolygon),basePolygon(basePolygon),closed(true){
-    if(basePolygon==NULL){
-        holesPolies.append(new Polygon(this));
-    }
+Polygon::Polygon(bool inner):QGraphicsItem(),inner(inner),closed(true){
 }
 
-
 Polygon::~Polygon(){
-    QList<Polygon* >::iterator it2;
-    for(it2=holes().begin();it2!=holes().end();it2++){
-        delete *it2;
-    }
     QList<PolyDot* >::iterator it;
     for(it=boundary.end();it!=boundary.end();it++){
         delete *it;
@@ -70,16 +62,18 @@ bool Polygon::isClosed(){
 }
 
 bool Polygon::isInner(){
-    return basePolygon != NULL;
+    return inner;
 }
 
-QList<Polygon*> & Polygon::holes(){
-    return holesPolies;
-}
-
-void Polygon::addBoundaryPoint(PolyDot *dot){
+void Polygon::addBoundaryPoint(QPointF pos){
+    PolyDot *dot =new PolyDot();
+    dot->setPos(pos);
     dot->setParentItem(this);
-    boundary.append(dot);
+
+    connect(dot,SIGNAL(dotMoved()),this,SLOT(dotUpdate()));
+
+    boundary.append(dot);    
+    emit polyChanged();
 }
 
 void Polygon::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
@@ -110,6 +104,15 @@ void Polygon::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, Q
     {
         painter->drawPolyline(polygon);
     }
+}
+
+void Polygon::dotUpdate(){
+    qDebug() << "polyChanged from polygon!";
+    emit polyChanged();
+}
+
+QString Polygon::toString(){
+    QString out;
 }
 
 

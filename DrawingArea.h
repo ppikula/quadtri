@@ -2,9 +2,9 @@
 #define DRAWINGAREA_H
 
 #include <QtGui>
-#include "polygon.h"
-#include "drawingscene.h"
-#include "drawingstep.h"
+#include "Polygon.h"
+#include "DrawingScene.h"
+#include "DrawingStep.h"
 class DrawingArea : public QWidget
 {
     Q_OBJECT
@@ -19,8 +19,6 @@ public:
 signals:
     void polyChanged(Polygon &poly);
 
-
-
 private slots:
     void startStopPoly();
     void startStopInnerPloly();
@@ -29,6 +27,8 @@ private slots:
 signals:
 
 public slots:
+    void polyUpdate();
+    void sceneDoubleCliked(QGraphicsSceneMouseEvent *event);
 
 private:
 
@@ -40,6 +40,7 @@ private:
 
     /* Logic items */
     Polygon *basePolygon;
+    QList<Polygon*> holes;
     QList<DrawingStep*> renderQueue;
 };
 

@@ -1,6 +1,6 @@
-#include "drawingarea.h"
-#include "drawingscene.h"
-#include "drawingstep.h"
+#include "DrawingArea.h"
+#include "DrawingScene.h"
+#include "DrawingStep.h"
 
 DrawingArea::DrawingArea(QWidget *parent) :
     QWidget(parent)//,currentStep(NULL)
@@ -8,28 +8,21 @@ DrawingArea::DrawingArea(QWidget *parent) :
     basePolygon = new Polygon();
     scene = new DrawingScene(basePolygon,0, 0, 600, 600);
 
-//    PolyDot *firstdot = new PolyDot();
-//    PolyDot *secondDot = new PolyDot();
-//    PolyDot *thirdDot = new PolyDot();
-
-//    firstdot->setPos(100,250);
-//    secondDot->setPos(200,60);
-//    thirdDot->setPos(434,344);
-
-//    basePolygon->addBoundaryPoint(firstdot);
-//    basePolygon->addBoundaryPoint(secondDot);
-//    basePolygon->addBoundaryPoint(thirdDot);
+    basePolygon->addBoundaryPoint(QPointF(100,100));
+    basePolygon->addBoundaryPoint(QPointF(200,200));
+    basePolygon->addBoundaryPoint(QPointF(100,200));
 
     view = new QGraphicsView(scene);
     view->setRenderHint(QPainter::Antialiasing);
     view->setViewportUpdateMode(QGraphicsView::BoundingRectViewportUpdate);
     view->setBackgroundBrush(QColor(0,0,0));
 
+
     startStopBut =new QPushButton();
     startStopBut->setText("Open");
 
     startStopInner = new QPushButton();
-    startStopInner->setText("Open Inner");
+    startStopInner->setText("Add hole");
 
     slider = new QSlider();
     slider->setOrientation(Qt::Horizontal);
@@ -51,11 +44,14 @@ DrawingArea::DrawingArea(QWidget *parent) :
     lay->addLayout(bottomLay);
     setLayout(lay);
 
+    connect(scene,SIGNAL(polyChanged()),this,SLOT(polyUpdate()));
+    connect(scene,SIGNAL(doubleClicked(QGraphicsSceneMouseEvent*)),this,SLOT(sceneDoubleCliked(QGraphicsSceneMouseEvent*)));
     connect(startStopBut,SIGNAL(clicked()),this,SLOT(startStopPoly()));
     connect(startStopInner,SIGNAL(clicked()),this,SLOT(startStopInnerPloly()));
     connect(slider,SIGNAL(valueChanged(int)),this,SLOT(viewSliderChanged(int)));
 
 }
+
 void DrawingArea::startStep(float time){
     renderQueue.append(new DrawingStep(time));
 }
@@ -68,13 +64,21 @@ void DrawingArea::stopStep(){
 }
 
 void DrawingArea::addToQueue(QGraphicsItem *item){
-    qDebug() << "adding Graphics object\n";
     renderQueue.last()->addToGroup(item);
+}
+
+Polygon * DrawingArea::polygon(){
+    return basePolygon;
+}
+
+
+/* Slots */
+void DrawingArea::polyUpdate(){
+    qDebug() << "polyUpdate from area";
 }
 
 
 /* Callbacks */
-
 void DrawingArea::startStopPoly(){
     if(basePolygon->isClosed()){
         basePolygon->open();
@@ -89,15 +93,19 @@ void DrawingArea::startStopPoly(){
 }
 
 void DrawingArea::startStopInnerPloly(){
-    if(basePolygon->holes().last()->isClosed()){
-        basePolygon->holes().last()->open();
+    if(holes.size()==0 || holes.last()->isClosed()){
+        Polygon *newPoly = new Polygon(true);
+        newPoly->open();
+        connect(newPoly,SIGNAL(polyChanged()),this,SLOT(polyUpdate()));
+        scene->addItem(newPoly);
+        holes.append(newPoly);
+
         startStopInner->setText("Close hole");
         startStopBut->setEnabled(false);
-    }else
-    { basePolygon->holes().last()->close();
-        Polygon *newPoly = new Polygon(basePolygon);
-        basePolygon->holes().append(newPoly);
-        startStopInner->setText("Open hole");
+    }else{
+        holes.last()->close();
+
+        startStopInner->setText("Add hole");
         startStopBut->setEnabled(true);
     }
     scene->update();
@@ -112,6 +120,14 @@ void DrawingArea::viewSliderChanged(int v){
     }
 }
 
-Polygon * DrawingArea::polygon(){
-    return basePolygon;
+void DrawingArea::sceneDoubleCliked(QGraphicsSceneMouseEvent *event){
+    if(!basePolygon->isClosed()){
+        basePolygon->addBoundaryPoint(event->scenePos());
+    }else {
+        Polygon *poly = holes.last();
+        if(!poly->isClosed()){
+            poly->addBoundaryPoint(event->scenePos());
+        }
+    }
+    scene->update();
 }

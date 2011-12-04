@@ -1,7 +1,7 @@
 #include <QtGui>
-#include "drawingarea.h"
-#include "polydot.h"
-#include "polygon.h"
+#include "DrawingArea.h"
+#include "PolyDot.h"
+#include "Polygon.h"
 
 
 
@@ -44,19 +44,3 @@ int main(int argc, char *argv[])
 
     return a.exec();
 }
-
-//void DrawingArea::triangulate(){
-//    for(int i=0;i<50;i++){
-//        SceneStep *step = new SceneStep();
-//        for(int j=1;j<qrand()%10;j++){
-//            qreal ax = 100+qrand()%300;
-//            qreal ay = 100+qrand()%300;
-//            qreal bx = 100+qrand()%300;
-//            qreal by = 100+qrand()%300;
-//            QGraphicsLineItem *line = new QGraphicsLineItem(QLineF(ax,ay,bx,by));
-//            step->items.append(line);
-//        }
-//        scene->addSceneStep(step);
-//    }
-//    slider->setMaximum(50);
-//}

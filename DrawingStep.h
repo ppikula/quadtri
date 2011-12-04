@@ -3,8 +3,9 @@
 
 #include <QtGui>
 
-class DrawingStep: public QGraphicsItemGroup
+class DrawingStep: public QObject,public QGraphicsItemGroup
 {
+    Q_INTERFACES(QGraphicsItemGroup)
 public:
     DrawingStep(qreal value=0.1,QString description="");
     qreal value;

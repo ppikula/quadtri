@@ -3,14 +3,18 @@
 
 #include <QtGui>
 
-class PolyDot : public QGraphicsItem
+class PolyDot : public QObject,public QGraphicsItem
 {
+    Q_OBJECT
 public:
-    explicit PolyDot();
+    PolyDot();
     QRectF boundingRect() const;
     QRectF markerRect() const;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
     QPointF center();
+
+signals:
+    void dotMoved();
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
