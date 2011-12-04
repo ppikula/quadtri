@@ -5,7 +5,7 @@
 #include <algorithm>
 #include "Triangulator.h"
 
-uint QuadTreeNode::MAX_LEVEL = 10;
+uint QuadTreeNode::MAX_LEVEL = 1000;
 
 static int direction(const Point& a, const Point& b,const Point& c){
     double res = (a.x-c.x)*(b.y-c.y) -(b.x-c.x)*(a.y-c.y);
@@ -171,7 +171,7 @@ void QuadTreeNode::subdivide()
             if(NE->contains(e))NE->insert(e);
             if(SE->contains(e))SE->insert(e);
             if(SW->contains(e))SW->insert(e);
-            insertedPoint=NULL;
+            insertedEdge=NULL;
         }
     }
 }
