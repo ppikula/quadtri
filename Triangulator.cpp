@@ -1,4 +1,5 @@
 #include "Triangulator.h"
+#include "QuadTree.h"
 
 Triangulator::Triangulator(DrawingArea *area,QObject *parent) :
     QObject(parent),area(area)
@@ -18,8 +19,11 @@ void Triangulator::triangulate(){
     QList<Polygon*> holes = area->holesInPoly(); //holes in it
 
     area->clear(); //remove previous drawings
+    QuadTree quad_tree(Point(0,0),400);
+    //quad_tree.insert(poly-);
+    quad_tree.draw(area);
 
-    for(int i=0;i<50;i++){
+    /*for(int i=0;i<50;i++){
         area->startStep(0.1); //begins drawing step
         for(int j=1;j<qrand()%10;j++){
             qreal ax = 100+qrand()%300;
@@ -32,5 +36,5 @@ void Triangulator::triangulate(){
             area->addToQueue(line); //adds figure to the step
         }
         area->stopStep(); //ends drawing step
-    }
+    }*/
 }

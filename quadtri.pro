@@ -13,16 +13,20 @@ HEADERS += DrawingArea.h \
            DrawingStep.h \
            PolyDot.h \
            Polygon.h \
-		   quadtree.h \
-    Triangulator.h
+    Triangulator.h \
+    QuadTree.h
 SOURCES += DrawingArea.cpp \
            DrawingScene.cpp \
            DrawingStep.cpp \
            main.cpp \
            PolyDot.cpp \
            Polygon.cpp \
-		   quadtree.cpp \
-    Triangulator.cpp
+    Triangulator.cpp \
+    QuadTree.cpp
+
+
+
+
 
 
 

@@ -1,8 +1,9 @@
-#include "quadtree.h"
+#include "QuadTree.h"
 #include <vector>
 #include <list>
 #include <queue>
 #include <algorithm>
+#include "Triangulator.h"
 
 uint QuadTreeNode::MAX_LEVEL = 20;
 
@@ -15,8 +16,8 @@ static int direction(const Point& a, const Point& b,const Point& c){
 
 bool Edge::intersects(Edge* e)
 {
-    if( direction(l1,l2.start) == direction(l1,l2.end) )return false;
-    if( direction(l2,l1.start) == direction(l2,l1.end) )return false;
+    if( direction(*b,*(this->e),*(e->b)) == direction(*b,*(this->e),*(e->e) ))return false;
+    if( direction(*(e->b),*(e->e),*(this->b)) == direction(*(e->b),*(e->e),*(this->e))) return false;
     return true;
 }
 
@@ -65,7 +66,7 @@ void QuadTreeNode::subdivide()
 
         if( insertedPoint )
         {
-            switch(whichQuadrant(insertedPoint))
+            switch(whichQuadrant(*insertedPoint))
             {
                 case EQ_NW:
                     NW->insert(insertedPoint);
@@ -103,7 +104,7 @@ uint QuadTreeNode::depth()
     return *(std::max_element(depths.begin(),depths.end()));
 }
 
-QuadTreeNode::EQuadrant QuadTreeNode::whichQuadrant(const Point& p)
+QuadTreeNode::EQuadrant QuadTreeNode::whichQuadrant(const Point& p) const
 {
     bool e = p.x >= lu_corner.x+size/2;
     bool s = p.y >= lu_corner.y+size/2;
@@ -164,7 +165,7 @@ bool QuadTreeNode::contains(Edge* e) const
     if( (e->b->x >= lu_corner.x &&  e->b->x <= lu_corner.x+size &&
          e->b->y >= lu_corner.y &&  e->b->y <= lu_corner.y+size)&&
         (e->e->x >= lu_corner.x &&  e->e->x <= lu_corner.x+size &&
-         e->e->y >= lu_corner.y &&  e->e->y <= lub_corner.y+size))return true;
+         e->e->y >= lu_corner.y &&  e->e->y <= lu_corner.y+size))return true;
 
     return false;
 }
@@ -209,16 +210,28 @@ void QuadTree::Triangulate()
         }
     }
 
+
     // iterate over leaves and create triangles
     // analyse neighbours and create triangles
-    std::list<QuadTreeNode> it=leaves.begin();
+    /*std::list<QuadTreeNode*> it=leaves.begin();
     for(;it!=leaves.end();it++)
     {
 
-    }
+    }*/
 
     //TODO: filtering and mesh opitimizations
 
 }
 
+void QuadTree::draw(DrawingArea *area)
+{
+    area->startStep(10);
+
+    QGraphicsLineItem *line = new QGraphicsLineItem(QLineF(0,0,400,400));
+    QPen pen(Qt::yellow);
+    line->setPen(pen);
+    area->addToQueue(line);
+
+    area->stopStep();
+}
 

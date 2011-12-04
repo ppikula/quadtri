@@ -66,6 +66,8 @@ private:
 
 };
 
+class DrawingArea;
+
 class QuadTree
 {
     QScopedPointer<QuadTreeNode> root;
@@ -85,6 +87,9 @@ public:
     //should return  triangulation result
     void Triangulate();
     //std::list<QuadTreeNode> leaves;
+
+
+    void draw(DrawingArea *area);
 };
 
 #endif // QUADTREE_H
