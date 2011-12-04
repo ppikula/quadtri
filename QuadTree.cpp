@@ -25,43 +25,105 @@ QuadTreeNode::QuadTreeNode(const Point& p, double size):lu_corner(p),level(0),si
 {
     insertedPoint=0;
     insertedEdge=0;
+    N=0;
+    S=0;
+    W=0;
+    E=0;
 }
 
-QuadTreeNode::QuadTreeNode(const Point& p, double size,QuadTreeNode* parent):lu_corner(p),size(size),parent(parent)
+QuadTreeNode::QuadTreeNode(const Point& p, double size,QuadTreeNode* parent,EQuadrant type):lu_corner(p),size(size),parent(parent)
 {
     Q_ASSERT(parent);
     level=parent->level+1;
-    insertedPoint=0;
-    insertedEdge=0;
+    insertedPoint=NULL;
+    insertedEdge=NULL;
     //extractNeighbours();
+    N=0;
+    S=0;
+    W=0;
+    E=0;
+    this->type=type;
 }
 
 void QuadTreeNode::subdivide()
 {
     if(isLeaf() && level<MAX_LEVEL)
     {
-        NW.reset(new QuadTreeNode(lu_corner,size/2.0,this));
-        NE.reset(new QuadTreeNode(Point(lu_corner.x+size/2.0,lu_corner.y),size/2.0,this));
-        SE.reset(new QuadTreeNode(Point(lu_corner.x+size/2.0,lu_corner.y+size/2.0),size/2.0,this));
-        SW.reset(new QuadTreeNode(Point(lu_corner.x,lu_corner.y+size/2.0),size/2.0,this));
+        double s2=size/2;
+        NW.reset(new QuadTreeNode(lu_corner,s2,this,EQ_NW));
+        NE.reset(new QuadTreeNode(Point(lu_corner.x+s2,lu_corner.y),s2,this,EQ_NE));
+        SE.reset(new QuadTreeNode(Point(lu_corner.x+s2,lu_corner.y+s2),s2,this,EQ_SE));
+        SW.reset(new QuadTreeNode(Point(lu_corner.x,lu_corner.y+s2),s2,this,EQ_SW));
 
-        if(!N.isNull()&&N->depth()<level)N->subdivide();
-        if(!E.isNull()&&E->depth()<level)E->subdivide();
-        if(!S.isNull()&&S->depth()<level)S->subdivide();
-        if(!W.isNull()&&W->depth()<level)W->subdivide();
+        if(N && N->depth()<level)N->subdivide();
+        if(E && E->depth()<level)E->subdivide();
+        if(S && S->depth()<level)S->subdivide();
+        if(W && W->depth()<level)W->subdivide();
+
+        //non root
+        if(parent)
+        {
+            if( (type==EQ_SE || type==EQ_SW) && parent->S && parent->S->depth()<level )
+            {
+                parent->S->subdivide();
+                if(type==EQ_SE)S=parent->S->NE.data();
+                if(type==EQ_SW)S=parent->S->NW.data();
+            }
+            if( (type==EQ_NE || type==EQ_NW) && parent->N && parent->N->depth()<level )
+            {
+                parent->N->subdivide();
+                if(type==EQ_NE)N=parent->N->SE.data();
+                if(type==EQ_NW)N=parent->N->SW.data();
+            }
+            if( (type==EQ_SE || type==EQ_NE) && parent->E && parent->E->depth()<level )
+            {
+                parent->E->subdivide();
+                if(type==EQ_NE)E=parent->E->NW.data();
+                if(type==EQ_SE)E=parent->E->SW.data();
+            }
+            if( (type==EQ_NW || type==EQ_SW) && parent->W && parent->W->depth()<level )
+            {
+                parent->W->subdivide();
+                if(type==EQ_NW)W=parent->W->NE.data();
+                if(type==EQ_SW)W=parent->W->SE.data();
+            }
+
+        }
 
         //filling obvious neighbours
-        NW->E.reset(NE.data());
-        NW->S.reset(SW.data());
+        NW->E=NE.data();
+        NW->S=SW.data();
 
-        NE->W.reset(NW.data());
-        NE->S.reset(SE.data());
+        NE->W=NW.data();
+        NE->S=SE.data();
 
-        SE->W.reset(SW.data());
-        SE->N.reset(NE.data());
+        SE->W=SW.data();
+        SE->N=NE.data();
 
-        SW->N.reset(NW.data());
-        SW->E.reset(SE.data());
+        SW->N=NW.data();
+        SW->E=SE.data();
+
+        //other neighbours
+        if(parent)
+        {
+            /*if( parent->N  && parent->N->depth()==level)
+            {
+                if(type==EQ_NW)N=parent->SW.data();
+                if(type==EQ_NE)N=parent->SE.data();
+            }*/
+        }
+
+
+        if(N && N->depth()>=level+1)
+        {
+            //NW->N = N->SW.data();
+            //NE->N = N->SE.data();
+        }
+
+        /*if(S && W->depth()>=level+1){ NW->N=N->SW.data();NE->N=N->SE.data(); }
+        if(E && E->depth()>=level+1){ NW->N=N->SW.data();NE->N=N->SE.data(); }
+        if(W && W->depth()>=level+1){ NW->N=N->SW.data();NE->N=N->SE.data(); }*/
+
 
 
         if( insertedPoint )
@@ -106,12 +168,12 @@ uint QuadTreeNode::depth()
 
 QuadTreeNode::EQuadrant QuadTreeNode::whichQuadrant(const Point& p) const
 {
-    bool e = p.x >= lu_corner.x+size/2;
-    bool s = p.y >= lu_corner.y+size/2;
-    if(!e && !s)return EQ_NW;
-    else if(e && s) return EQ_SE;
-    else if(e) return EQ_NE;
-    else if(s) return EQ_SW;
+    bool x2 = p.x >= lu_corner.x+size/2;
+    bool y2 = p.y >= lu_corner.y+size/2;
+    if(!x2 && !y2)return EQ_NW;
+    else if(x2 && y2) return EQ_SE;
+    else if(x2 && !y2) return EQ_NE;
+    else if(y2 && !x2) return EQ_SW;
 }
 
 void QuadTreeNode::insert(Point* p)
@@ -175,6 +237,32 @@ void QuadTreeNode::extractNeighbours()
     //TODO: neighbours
 }
 
+void QuadTreeNode::draw(DrawingArea *area)
+{
+    if (!isLeaf())
+    {
+        QGraphicsLineItem* vert=new QGraphicsLineItem(QLineF(lu_corner.x+size/2,
+                                                      lu_corner.y,
+                                                      lu_corner.x+size/2,
+                                                      lu_corner.y+size));
+
+        QGraphicsLineItem* hor =new QGraphicsLineItem(QLineF(lu_corner.x,
+                                                             lu_corner.y+size/2,
+                                                             lu_corner.x+size,
+                                                             lu_corner.y+size/2));
+
+        QPen pen(Qt::yellow);
+        vert->setPen(pen);
+        hor->setPen(pen);
+        area->addToQueue(vert);
+        area->addToQueue(hor);
+
+        NW->draw(area);
+        NE->draw(area);
+        SE->draw(area);
+        SW->draw(area);
+    }
+}
 
 /////////////////////////////////////////////////////////////
 // QuadTree
@@ -227,11 +315,44 @@ void QuadTree::draw(DrawingArea *area)
 {
     area->startStep(10);
 
-    QGraphicsLineItem *line = new QGraphicsLineItem(QLineF(0,0,400,400));
+    QGraphicsRectItem* quad=new QGraphicsRectItem(QRectF(root->lu_corner.x,root->lu_corner.y,
+                                                         root->size,root->size));
     QPen pen(Qt::yellow);
-    line->setPen(pen);
-    area->addToQueue(line);
+    quad->setPen(pen);
+    area->addToQueue(quad);
+    root->draw(area);
+
 
     area->stopStep();
 }
 
+void QuadTree::insertPolygon(Polygon* poly)
+{
+    QRectF bound=poly->boundingRect();
+    //PP: WTF? why 15 is offset? ?
+    root->lu_corner.x=bound.topLeft().x()-15;
+    root->lu_corner.y=bound.topLeft().y()-15;
+
+    root->size=std::max(bound.height()+10,bound.width()+10);
+
+    //iterate over poly and add points
+    QList<PolyDot* >::const_iterator it;
+
+    points.clear();
+    edges.clear();
+
+    //blah FIMXE!!!
+    edges.reserve(100000);
+    points.reserve(1000000);
+    //qDebug()<<"===========";
+
+    for(it=poly->boundary.constBegin();it!=poly->boundary.constEnd();it++){
+        insert(Point((*it)->center().x(),(*it)->center().y()));
+    }
+}
+
+void QuadTree::insert(const Point& p)
+{
+    points.push_back(p);
+    root->insert(&points.back());
+}

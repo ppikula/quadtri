@@ -26,6 +26,10 @@ struct Triangle
     Point *a,*b,*c;
 };
 
+// forward declarations
+class DrawingArea;
+class Polygon;
+
 struct QuadTreeNode
 {
     enum EQuadrant{
@@ -37,6 +41,7 @@ struct QuadTreeNode
 
     static uint MAX_LEVEL;//maximum tree level
 
+    EQuadrant type;
     Point* insertedPoint;
     Edge* insertedEdge;
 
@@ -46,10 +51,10 @@ struct QuadTreeNode
 
     QuadTreeNode* parent;
     QScopedPointer<QuadTreeNode> NW,NE,SE,SW;//subnodes
-    QScopedPointer<QuadTreeNode> N,E,S,W;//neighbours
+    QuadTreeNode* N,*E,*S,*W;//neighbours
 
     QuadTreeNode(const Point&p,double size);
-    QuadTreeNode(const Point&p,double size,QuadTreeNode* parent);
+    QuadTreeNode(const Point&p,double size,QuadTreeNode* parent,EQuadrant type);
 
     void insert(Point* p);
     //FIXME: criterion for subdivision apply when there is no point in quadrant
@@ -59,6 +64,8 @@ struct QuadTreeNode
 
     uint depth();
 
+    void draw(DrawingArea *area);
+
 private:
     void extractNeighbours();
     EQuadrant whichQuadrant(const Point& p) const;
@@ -66,7 +73,7 @@ private:
 
 };
 
-class DrawingArea;
+
 
 class QuadTree
 {
@@ -78,9 +85,9 @@ class QuadTree
 public:
     QuadTree(const Point& p, uint size);
 
-    void insert(const Point& p){root->subdivide();}
+    void insert(const Point& p);
     // points with constraints
-    void insertPolygon(const std::vector<Point>& pts){}
+    void insertPolygon(Polygon* poly);
 
     //maximum level
     uint depth();

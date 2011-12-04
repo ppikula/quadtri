@@ -24,7 +24,7 @@ QRectF Polygon::boundingRect() const
         if((*it)->pos().y()>max_y)
             max_y = (*it)->pos().y();
     }
-    QRectF rect(min_x,max_y,max_x-min_x,max_y-min_y);
+    QRectF rect(min_x,min_y,max_x-min_x,max_y-min_y);
     return rect;
 }
 
@@ -56,6 +56,7 @@ void Polygon::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, Q
     if(!isInner()){
         painter->setPen(Qt::blue);
         painter->setBrush(Qt::green);
+
     }else{
         painter->setPen(Qt::blue);
         painter->setBrush(Qt::black);
@@ -65,7 +66,7 @@ void Polygon::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, Q
         painter->drawPolygon(polygon);
     }else
     {
-        painter->drawPolyline(polygon);
+       painter->drawPolyline(polygon);
     }
 }
 

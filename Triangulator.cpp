@@ -19,7 +19,9 @@ void Triangulator::triangulate(){
     QList<Polygon*> holes = area->holesInPoly(); //holes in it
 
     area->clear(); //remove previous drawings
-    QuadTree quad_tree(Point(0,0),400);
+    QuadTree quad_tree(Point(90,90),400);
+
+    quad_tree.insertPolygon(poly);
     //quad_tree.insert(poly-);
     quad_tree.draw(area);
 

@@ -26,7 +26,7 @@ public:
     bool isInner() {return inner;}
 
     QString toString();
-
+    QList<PolyDot*> boundary;
 signals:
     void polyChanged();
 
@@ -41,7 +41,7 @@ private:
     bool closed;
     bool inner;
 
-    QList<PolyDot*> boundary;
+
 
 };
 
