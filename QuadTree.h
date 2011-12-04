@@ -2,6 +2,8 @@
 #define QUADTREE_H
 #include <QScopedPointer>
 #include <vector>
+#include <utility>
+
 // forward declarations
 class DrawingArea;
 class Polygon;
@@ -10,6 +12,8 @@ struct Point
 {
     Point():x(0),y(0){}
     Point(double x,double y):x(x),y(y){}
+
+    //add egde info ?
     double x,y;
 };
 
@@ -21,6 +25,7 @@ struct Edge
     Edge(Point* b,Point* e):b(b),e(e){}
     Point *b,*e;
     bool intersects(Edge* e);
+    Point intersectionPoint(Edge* e);
 };
 
 
@@ -67,8 +72,9 @@ struct QuadTreeNode
     bool isLeaf();
 
     uint depth();
-
     void draw(DrawingArea *area);
+
+    void upadteNeighbours();
 
 private:
     void extractNeighbours();
@@ -99,6 +105,7 @@ public:
     //should return  triangulation result
     void Triangulate();
     void applyTemplateTriangulation(QuadTreeNode* n);
+    void applyPointTriangulation(QuadTreeNode* n);
     //std::list<QuadTreeNode> leaves;
 
 

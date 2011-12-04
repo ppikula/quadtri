@@ -21,6 +21,13 @@ bool Edge::intersects(Edge* e)
     return true;
 }
 
+Point Edge::intersectionPoint(Edge* e)
+{
+    Point p;
+
+    return p;
+}
+
 void Triangle::draw(DrawingArea* area)
 {
     QGraphicsLineItem* l1 = new QGraphicsLineItem(QLineF(a->x,a->y,b->x,b->y));
@@ -271,6 +278,36 @@ void QuadTreeNode::extractNeighbours()
     //TODO: neighbours
 }
 
+void QuadTreeNode::upadteNeighbours()
+{
+    if(parent){
+        if(type==EQ_NW)
+        {
+            if(parent->N && !parent->N->isLeaf())   N=parent->N->SW.data();
+            if(parent->W && !parent->W->isLeaf())   W=parent->W->NE.data();
+
+        }
+        if(type==EQ_NE)
+        {
+            if(parent->N && !parent->N->isLeaf())   N=parent->N->SE.data();
+            if(parent->E && !parent->E->isLeaf())   E=parent->E->NW.data();
+
+        }
+        if(type==EQ_SE)
+        {
+            if(parent->S && !parent->S->isLeaf())   S=parent->S->NE.data();
+            if(parent->E && !parent->E->isLeaf())   E=parent->E->SW.data();
+
+        }
+        if(type==EQ_SW)
+        {
+            if(parent->S && !parent->S->isLeaf())   S=parent->S->NW.data();
+            if(parent->W && !parent->W->isLeaf())   W=parent->W->SE.data();
+        }
+
+    }
+}
+
 void QuadTreeNode::draw(DrawingArea *area)
 {
     if (!isLeaf())
@@ -291,10 +328,38 @@ void QuadTreeNode::draw(DrawingArea *area)
         area->addToQueue(vert);
         area->addToQueue(hor);
 
+
         NW->draw(area);
         NE->draw(area);
         SE->draw(area);
         SW->draw(area);
+
+    }else{
+        QPen pen2(Qt::red);
+
+        if( N && !N->isLeaf() ){
+            QGraphicsRectItem *r = new QGraphicsRectItem(lu_corner.x-5+size/2,lu_corner.y-5,10,10);
+            r->setPen(pen2);
+            area->addToQueue(r);
+        }
+
+        if( S && !S->isLeaf() ){
+            QGraphicsRectItem *r = new QGraphicsRectItem(lu_corner.x-5+size/2,lu_corner.y-5+size,10,10);
+            r->setPen(pen2);
+            area->addToQueue(r);
+        }
+
+        if( E && !E->isLeaf() ){
+            QGraphicsRectItem *r = new QGraphicsRectItem(lu_corner.x-5+size,lu_corner.y-5+size/2,10,10);
+            r->setPen(pen2);
+            area->addToQueue(r);
+        }
+
+        if( W && !W->isLeaf() ){
+            QGraphicsRectItem *r = new QGraphicsRectItem(lu_corner.x-5,lu_corner.y-5+size/2,10,10);
+            r->setPen(pen2);
+            area->addToQueue(r);
+        }
     }
 }
 
@@ -346,24 +411,26 @@ void QuadTree::Triangulate()
     for(;it!=leaves.end();it++)
     {
         QuadTreeNode* n=*it;
-        Point *p1=new Point(n->lu_corner);
+        n->upadteNeighbours();
+
+      /*  Point *p1=new Point(n->lu_corner);
         Point *p2=new Point(n->lu_corner.x+n->size,n->lu_corner.y);
         Point *p3=new Point(n->lu_corner.x,n->lu_corner.y+n->size);
-        Point *p4=new Point(n->lu_corner.x+n->size,n->lu_corner.y+n->size);
+        Point *p4=new Point(n->lu_corner.x+n->size,n->lu_corner.y+n->size);*/
 
         if(n->insertedPoint){
-           // tris.push_back(Triangle(p1,n->insertedPoint,p2));
-           // tris.push_back(Triangle(p1,p3,n->insertedPoint));
-           // tris.push_back(Triangle(p3,p4,n->insertedPoint));
-           // tris.push_back(Triangle(p4,p2,n->insertedPoint));
-        }else{
-            applyTemplateTriangulation(n);
-        }
+           //applyPointTriangulation(n);
+        }else if(n->insertedEdge){
 
+        }else{
+          applyTemplateTriangulation(n);
+        }
 
     }
 
-    //TODO: filtering and mesh opitimizations
+    //TODO: filter  triangles outside use QPolygon
+
+    //TODO: mesh opitimizations
 
 }
 
@@ -376,44 +443,114 @@ void QuadTree::applyTemplateTriangulation(QuadTreeNode* n)
     p[3]=new Point(n->lu_corner.x+n->size,n->lu_corner.y+n->size);
 
     p[4]=new Point(n->lu_corner.x+n->size/2.0,n->lu_corner.y);
-    p[5]=new Point(n->lu_corner.x+n->size/2.0,n->lu_corner.y+n->size/2.0);
+    p[5]=new Point(n->lu_corner.x+n->size,n->lu_corner.y+n->size/2.0);
     p[6]=new Point(n->lu_corner.x+n->size/2.0,n->lu_corner.y+n->size);
-    p[7]=new Point(n->lu_corner.x,n->lu_corner.y+n->size+n->size/2.0);
+    p[7]=new Point(n->lu_corner.x,n->lu_corner.y+n->size/2.0);
 
 
 
     int nn=0,ss=0,ww=0,ee=0;
-    if( n->N )nn++;
-    if( n->S )ss++;
-    if( n->W )ee++;
-    if( n->E )ww++;
+    if( n->N && !n->N->isLeaf() )nn++;
+    if( n->S && !n->S->isLeaf() )ss++;
+    if( n->E && !n->E->isLeaf() )ee++;
+    if( n->W && !n->W->isLeaf() )ww++;
 
     int sum =nn+ss+ww+ee;
 
+    //16 cases - can be  simplified
     if( sum==0 )
     {
-
-    }else if(sum==4 ){
         tris.push_back(Triangle(p[0],p[2],p[1]));
         tris.push_back(Triangle(p[2],p[3],p[1]));
+    }else if(sum==4 ){
+        tris.push_back(Triangle(p[7],p[4],p[0]));
+        tris.push_back(Triangle(p[4],p[5],p[1]));
+
+        tris.push_back(Triangle(p[7],p[3],p[5]));
+        tris.push_back(Triangle(p[7],p[2],p[6]));
+
+        tris.push_back(Triangle(p[7],p[6],p[4]));
+        tris.push_back(Triangle(p[4],p[7],p[5]));
+
     }else if(sum==3){
-        //2przypadki
+
+        int offset=0;
+        if(ss=0)offset=0;
+        else if(ee==0)offset=1;
+        else if(ww==0)offset=2;
+        else if(nn==0)offset=3;
+        //up
+        tris.push_back(Triangle(p[offset],p[4+(3+offset)%4],p[4+offset]));
+        tris.push_back(Triangle(p[4+offset],p[4+(offset+1)%4],p[(1+offset)%4]));
+        tris.push_back(Triangle(p[4+(3+offset)%4],p[4+(offset+1)%4],p[4+offset]));
+        //down
+        tris.push_back(Triangle(p[(3+offset)%4],p[4+(3+offset)%4],p[(2+offset)%4]));
+        tris.push_back(Triangle(p[(3+offset)%4],p[4+(1+offset)%4],p[4+(3+offset)%4]));
+
+
     }else if(sum==2)
     {
+        //ehh
+        if(nn==1 &&ss==1 ){
+            tris.push_back(Triangle(p[0],p[2],p[4]));
+            tris.push_back(Triangle(p[2],p[6],p[4]));
+            tris.push_back(Triangle(p[4],p[6],p[1]));
+            tris.push_back(Triangle(p[1],p[6],p[3]));
+        }else if(ee==1&&ww==1){
+            tris.push_back(Triangle(p[0],p[7],p[1]));
+            tris.push_back(Triangle(p[7],p[5],p[1]));
+            tris.push_back(Triangle(p[2],p[5],p[7]));
+            tris.push_back(Triangle(p[2],p[3],p[5]));
+        /////////////////////////////////
+        }else if(nn==1 &&ee==1 ){
+            tris.push_back(Triangle(p[0],p[2],p[4]));
+            tris.push_back(Triangle(p[4],p[5],p[1]));
+            tris.push_back(Triangle(p[2],p[5],p[4]));
+            tris.push_back(Triangle(p[2],p[3],p[5]));
+        }else if(ee==1 &&ss==1 ){
+            tris.push_back(Triangle(p[0],p[5],p[6]));
+            tris.push_back(Triangle(p[0],p[2],p[6]));
+            tris.push_back(Triangle(p[0],p[5],p[1]));
+            tris.push_back(Triangle(p[6],p[3],p[5]));
+        }else if(ss==1 &&ww==1 ){
+            tris.push_back(Triangle(p[0],p[7],p[1]));
+            tris.push_back(Triangle(p[7],p[2],p[6]));
+            tris.push_back(Triangle(p[7],p[6],p[1]));
+            tris.push_back(Triangle(p[6],p[3],p[1]));
+        }else if(ww==1 &&nn==1 ){
+            tris.push_back(Triangle(p[0],p[7],p[4]));
+            tris.push_back(Triangle(p[7],p[3],p[4]));
+            tris.push_back(Triangle(p[7],p[2],p[3]));
+            tris.push_back(Triangle(p[4],p[3],p[1]));
+        }
 
+    }else if(sum==1)
+    {
+        if(nn){
+          tris.push_back(Triangle(p[0],p[2],p[4]));
+          tris.push_back(Triangle(p[4],p[3],p[1]));
+          tris.push_back(Triangle(p[2],p[3],p[4]));
+        }else if(ss)
+        {
+          tris.push_back(Triangle(p[0],p[2],p[6]));
+          tris.push_back(Triangle(p[6],p[3],p[1]));
+          tris.push_back(Triangle(p[0],p[6],p[1]));
+        }else if(ee)
+        {
+          tris.push_back(Triangle(p[0],p[5],p[1]));
+          tris.push_back(Triangle(p[2],p[3],p[5]));
+          tris.push_back(Triangle(p[2],p[5],p[0]));
+        }else if(ww){
+          tris.push_back(Triangle(p[7],p[1],p[0]));
+          tris.push_back(Triangle(p[7],p[2],p[3]));
+          tris.push_back(Triangle(p[3],p[1],p[7]));
+        }
     }
 
-    //16 przypadków ;/
-    /*if ( hN && hS && hW && hE ){
-        tris.push_back(Triangle(p1,p4,p2));
-        tris.push_back(Triangle(p1,p3,p4));
-    }*/
+}
 
-
-
-
-
-
+void QuadTree::applyPointTriangulation(QuadTreeNode* n)
+{
 
 }
 
