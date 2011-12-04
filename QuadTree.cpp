@@ -21,11 +21,30 @@ bool Edge::intersects(Edge* e)
     return true;
 }
 
-Point Edge::intersectionPoint(Edge* e)
+Point Edge::intersectionPoint(Edge* ed)
 {
-    Point p;
 
-    return p;
+    double a1 = (b->y-e->y)/(b->x-e->x);
+    double a2 = (ed->b->y-ed->e->y)/(ed->b->x-ed->e->x);
+    double b1 = (b->y+e->y)-a1*(b->x+e->x);
+    double b2 = (ed->b->y+ed->e->y)-a2*(ed->b->x+ed->e->x);
+    b1*=0.5;
+    b2*=0.5;
+
+    Point result(0.0,0.0);
+
+    if( (b->x-e->x)==0 ){
+        result.x= b->x;
+        result.y=a2*result.x+b2;
+    }else if((ed->b->x-ed->e->x)==0){
+        result.x= ed->b->x;
+        result.y=a1*result.x+b1;
+    }else{
+        result.x = (b2-b1)/(a1-a2);
+        result.y = a1*result.x + b1;
+    }
+
+    return result;
 }
 
 void Triangle::draw(DrawingArea* area)
@@ -273,6 +292,11 @@ bool QuadTreeNode::contains(Edge* e) const
     return false;
 }
 
+Point QuadTreeNode::itersectionP(Edge* e)
+{
+
+}
+
 void QuadTreeNode::extractNeighbours()
 {
     //TODO: neighbours
@@ -337,28 +361,34 @@ void QuadTreeNode::draw(DrawingArea *area)
     }else{
         QPen pen2(Qt::red);
 
-        if( N && !N->isLeaf() ){
-            QGraphicsRectItem *r = new QGraphicsRectItem(lu_corner.x-5+size/2,lu_corner.y-5,10,10);
-            r->setPen(pen2);
-            area->addToQueue(r);
-        }
 
-        if( S && !S->isLeaf() ){
-            QGraphicsRectItem *r = new QGraphicsRectItem(lu_corner.x-5+size/2,lu_corner.y-5+size,10,10);
-            r->setPen(pen2);
-            area->addToQueue(r);
-        }
+        if(insertedPoint){
+            Point pts[4]={lu_corner,
+                          Point(lu_corner.x+size,lu_corner.y),
+                          Point(lu_corner.x+size,lu_corner.y+size),
+                          Point(lu_corner.x,lu_corner.y+size)};
+            Edge  edg[4];
 
-        if( E && !E->isLeaf() ){
-            QGraphicsRectItem *r = new QGraphicsRectItem(lu_corner.x-5+size,lu_corner.y-5+size/2,10,10);
-            r->setPen(pen2);
-            area->addToQueue(r);
-        }
+            for(int i=0;i<4;++i){
+                edg[i].b=&pts[i];
+                edg[i].e=&pts[(i+1)%4];
 
-        if( W && !W->isLeaf() ){
-            QGraphicsRectItem *r = new QGraphicsRectItem(lu_corner.x-5,lu_corner.y-5+size/2,10,10);
-            r->setPen(pen2);
-            area->addToQueue(r);
+                if (insertedPoint->next && edg[i].intersects(insertedPoint->next)){
+                    Point pp=insertedPoint->next->intersectionPoint(&edg[i]);
+                    QGraphicsRectItem *r = new QGraphicsRectItem(pp.x-5,pp.y-5,10,10);
+                    r->setPen(pen2);
+                    area->addToQueue(r);
+                }
+
+                if (insertedPoint->prev && edg[i].intersects(insertedPoint->prev)){
+                    Point pp=insertedPoint->prev->intersectionPoint(&edg[i]);
+                    QGraphicsRectItem *r = new QGraphicsRectItem(pp.x-5,pp.y-5,10,10);
+                    r->setPen(pen2);
+                    area->addToQueue(r);
+                }
+            }
+
+
         }
     }
 }
@@ -419,11 +449,11 @@ void QuadTree::Triangulate()
         Point *p4=new Point(n->lu_corner.x+n->size,n->lu_corner.y+n->size);*/
 
         if(n->insertedPoint){
-           //applyPointTriangulation(n);
+           applyPointTriangulation(n);
         }else if(n->insertedEdge){
-
+           applyEdgeTriangulation(n);
         }else{
-          applyTemplateTriangulation(n);
+           applyTemplateTriangulation(n);
         }
 
     }
@@ -551,6 +581,97 @@ void QuadTree::applyTemplateTriangulation(QuadTreeNode* n)
 
 void QuadTree::applyPointTriangulation(QuadTreeNode* n)
 {
+    Point *p[8];
+    p[0]=new Point(n->lu_corner);
+    p[1]=new Point(n->lu_corner.x+n->size/2.0,n->lu_corner.y);
+    p[2]=new Point(n->lu_corner.x+n->size,n->lu_corner.y);
+    p[3]=new Point(n->lu_corner.x+n->size,n->lu_corner.y+n->size/2.0);
+    p[4]=new Point(n->lu_corner.x+n->size,n->lu_corner.y+n->size);
+    p[5]=new Point(n->lu_corner.x+n->size/2.0,n->lu_corner.y+n->size);
+    p[6]=new Point(n->lu_corner.x,n->lu_corner.y+n->size);
+    p[7]=new Point(n->lu_corner.x,n->lu_corner.y+n->size/2.0);
+
+    int nn=0,ss=0,ww=0,ee=0;
+    if( n->N && !n->N->isLeaf() )nn++;
+    if( n->S && !n->S->isLeaf() )ss++;
+    if( n->E && !n->E->isLeaf() )ee++;
+    if( n->W && !n->W->isLeaf() )ww++;
+
+    Point* ip=n->insertedPoint;
+    generatePointTree(p,n,nn,0);
+    generatePointTree(p,n,ee,2);
+    generatePointTree(p,n,ss,4);
+    generatePointTree(p,n,ww,6);
+
+}
+void QuadTree::generatePointTree(Point** p,QuadTreeNode*n ,int type,int start)
+{
+    Point* ip=n->insertedPoint;
+    if( type==1){
+        Edge e(p[start],p[(start+1)]);
+        if(e.intersects(ip->next)){
+            Point pr = e.intersectionPoint(ip->next);
+            tris.push_back(Triangle(p[start],ip,new Point(pr)));
+            tris.push_back(Triangle(new Point(pr),ip,p[start+1]));
+        }if(e.intersects(ip->prev)){
+            Point pr = e.intersectionPoint(ip->prev);
+            tris.push_back(Triangle(p[start],ip,new Point(pr)));
+            tris.push_back(Triangle(new Point(pr),ip,p[start+1]));
+        }else
+            tris.push_back(Triangle(p[start],ip,p[start+1]));
+
+
+       Edge e2(p[start+1],p[(start+2)%8]);
+        if(e2.intersects(ip->next)){
+            Point pr = e2.intersectionPoint(ip->next);
+            tris.push_back(Triangle(p[start+1],ip,new Point(pr)));
+            tris.push_back(Triangle(new Point(pr),ip,p[(start+2)%8]));
+        }if(e2.intersects(ip->prev)){
+            Point pr = e2.intersectionPoint(ip->prev);
+            tris.push_back(Triangle(p[start+1],ip,new Point(pr)));
+            tris.push_back(Triangle(new Point(pr),ip,p[(start+2)%8]));
+
+        }else
+            tris.push_back(Triangle(p[start+1],ip,p[(start+2)%8]));
+    }else
+    {
+        Edge e(p[start],p[(start+2)%8]);
+        if(e.intersects(ip->next)){
+
+            Point pr = e.intersectionPoint(ip->next);
+            tris.push_back(Triangle(p[start],ip,new Point(pr)));
+            tris.push_back(Triangle(new Point(pr),ip,p[(start+2)%8]));
+        }else if(e.intersects(ip->prev)){
+
+            Point pr = e.intersectionPoint(ip->prev);
+
+            tris.push_back(Triangle(p[start],ip,new Point(pr)));
+            tris.push_back(Triangle(new Point(pr),ip,p[(start+2)%8]));
+        }else {
+            tris.push_back(Triangle(p[start],ip,p[(start+2)%8]));
+        }
+    }
+
+}
+
+void QuadTree::applyEdgeTriangulation(QuadTreeNode *n)
+{
+    Point *p[8];
+    p[0]=new Point(n->lu_corner);
+    p[1]=new Point(n->lu_corner.x+n->size/2.0,n->lu_corner.y);
+    p[2]=new Point(n->lu_corner.x+n->size,n->lu_corner.y);
+    p[3]=new Point(n->lu_corner.x+n->size,n->lu_corner.y+n->size/2.0);
+    p[4]=new Point(n->lu_corner.x+n->size,n->lu_corner.y+n->size);
+    p[5]=new Point(n->lu_corner.x+n->size/2.0,n->lu_corner.y+n->size);
+    p[6]=new Point(n->lu_corner.x,n->lu_corner.y+n->size);
+    p[7]=new Point(n->lu_corner.x,n->lu_corner.y+n->size/2.0);
+
+    int nn=0,ss=0,ww=0,ee=0;
+    if( n->N && !n->N->isLeaf() )nn++;
+    if( n->S && !n->S->isLeaf() )ss++;
+    if( n->E && !n->E->isLeaf() )ee++;
+    if( n->W && !n->W->isLeaf() )ww++;
+
 
 }
 
@@ -593,10 +714,11 @@ void QuadTree::insertPolygon(Polygon* poly)
     for(int i=0;i<points.size();++i)
     {
         edges.push_back(Edge(&points[i],&points[(i+1)%points.size()]));
+        edges.back().setPointsPtr();
         root->insert(&edges.back());
     }
 
-
+    int a=0;
 }
 
 void QuadTree::insert(const Point& p)

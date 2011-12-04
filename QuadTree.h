@@ -7,13 +7,14 @@
 // forward declarations
 class DrawingArea;
 class Polygon;
+struct Edge;
 
 struct Point
 {
-    Point():x(0),y(0){}
-    Point(double x,double y):x(x),y(y){}
+    Point():x(0),y(0),next(0),prev(0){}
+    Point(double x,double y):x(x),y(y),next(0),prev(0){}
 
-    //add egde info ?
+    Edge *next,*prev;
     double x,y;
 };
 
@@ -23,6 +24,7 @@ struct Edge
 {
     Edge():b(0),e(0){}
     Edge(Point* b,Point* e):b(b),e(e){}
+    void setPointsPtr(){b->next=this;e->prev=this;}
     Point *b,*e;
     bool intersects(Edge* e);
     Point intersectionPoint(Edge* e);
@@ -80,6 +82,7 @@ private:
     void extractNeighbours();
     EQuadrant whichQuadrant(const Point& p) const;
     bool contains(Edge* e) const;
+    Point itersectionP(Edge* e);
 
 };
 
@@ -106,9 +109,11 @@ public:
     void Triangulate();
     void applyTemplateTriangulation(QuadTreeNode* n);
     void applyPointTriangulation(QuadTreeNode* n);
+    void applyEdgeTriangulation(QuadTreeNode *n);
     //std::list<QuadTreeNode> leaves;
 
 
+    void generatePointTree(Point** p,QuadTreeNode*n ,int type,int start);
     void draw(DrawingArea *area);
 };
 
