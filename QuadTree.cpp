@@ -507,9 +507,10 @@ void QuadTree::applyTemplateTriangulation(QuadTreeNode* n)
 
         int offset=0;
         if(ss=0)offset=0;
-        else if(ee==0)offset=1;
-        else if(ww==0)offset=2;
-        else if(nn==0)offset=3;
+        else if(ww==0)offset=1;
+        else if(nn==0)offset=2;
+        else if(ee==0)offset=3;
+        std::swap(p[2],p[3]);
         //up
         tris.push_back(Triangle(p[offset],p[4+(3+offset)%4],p[4+offset]));
         tris.push_back(Triangle(p[4+offset],p[4+(offset+1)%4],p[(1+offset)%4]));
