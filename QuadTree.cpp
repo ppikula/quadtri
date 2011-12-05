@@ -516,8 +516,8 @@ void QuadTree::applyTemplateTriangulation(QuadTreeNode* n)
         tris.push_back(Triangle(p[4+offset],p[4+(offset+1)%4],p[(1+offset)%4]));
         tris.push_back(Triangle(p[4+(3+offset)%4],p[4+(offset+1)%4],p[4+offset]));
         //down
-        tris.push_back(Triangle(p[(3+offset)%4],p[4+(3+offset)%4],p[(2+offset)%4]));
-        tris.push_back(Triangle(p[(3+offset)%4],p[4+(1+offset)%4],p[4+(3+offset)%4]));
+        tris.push_back(Triangle(p[(3+offset)%4],p[(2+offset)%4],p[4+(3+offset)%4]));
+        tris.push_back(Triangle(p[(2+offset)%4],p[4+(1+offset)%4],p[4+(3+offset)%4]));
 
 
     }else if(sum==2)
