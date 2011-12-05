@@ -497,11 +497,11 @@ void QuadTree::applyTemplateTriangulation(QuadTreeNode* n)
         tris.push_back(Triangle(p[7],p[4],p[0]));
         tris.push_back(Triangle(p[4],p[5],p[1]));
 
-        tris.push_back(Triangle(p[7],p[3],p[5]));
         tris.push_back(Triangle(p[7],p[2],p[6]));
+        tris.push_back(Triangle(p[6],p[3],p[5]));
 
         tris.push_back(Triangle(p[7],p[6],p[4]));
-        tris.push_back(Triangle(p[4],p[7],p[5]));
+        tris.push_back(Triangle(p[4],p[6],p[5]));
 
     }else if(sum==3){
 
