@@ -54,6 +54,7 @@ void Triangle::draw(DrawingArea* area)
     QGraphicsLineItem* l3 = new QGraphicsLineItem(QLineF(c->x,c->y,a->x,a->y));
 
     QPen pen(Qt::cyan);
+    pen.setWidth(3);
     l1->setPen(pen);
     l2->setPen(pen);
     l3->setPen(pen);
@@ -657,13 +658,13 @@ void QuadTree::generatePointTree(Point** p,QuadTreeNode*n ,int type,int start)
 void QuadTree::applyEdgeTriangulation(QuadTreeNode *n)
 {
     Point *p[8];
-    p[0]=new Point(n->lu_corner);
+    p[0]=new Point(n->lu_corner);//nw
     p[1]=new Point(n->lu_corner.x+n->size/2.0,n->lu_corner.y);
-    p[2]=new Point(n->lu_corner.x+n->size,n->lu_corner.y);
+    p[2]=new Point(n->lu_corner.x+n->size,n->lu_corner.y);//ne
     p[3]=new Point(n->lu_corner.x+n->size,n->lu_corner.y+n->size/2.0);
-    p[4]=new Point(n->lu_corner.x+n->size,n->lu_corner.y+n->size);
+    p[4]=new Point(n->lu_corner.x+n->size,n->lu_corner.y+n->size);//se
     p[5]=new Point(n->lu_corner.x+n->size/2.0,n->lu_corner.y+n->size);
-    p[6]=new Point(n->lu_corner.x,n->lu_corner.y+n->size);
+    p[6]=new Point(n->lu_corner.x,n->lu_corner.y+n->size);//sw
     p[7]=new Point(n->lu_corner.x,n->lu_corner.y+n->size/2.0);
 
     int nn=0,ss=0,ww=0,ee=0;
@@ -671,6 +672,79 @@ void QuadTree::applyEdgeTriangulation(QuadTreeNode *n)
     if( n->S && !n->S->isLeaf() )ss++;
     if( n->E && !n->E->isLeaf() )ee++;
     if( n->W && !n->W->isLeaf() )ww++;
+
+    int sum = nn + ss +ww +ee;
+
+    Edge *e = n->insertedEdge;
+    Edge ned(p[0],p[2]);
+    Edge sed(p[4],p[6]);
+    Edge eed(p[2],p[4]);
+    Edge wed(p[0],p[6]);
+
+    Point *p2[2];
+    int side[2];
+    Point *opposite[2][2];// vertices the opposite border a of square
+    Point *same[2][2]; //vertices of the same border
+
+    int i=0;
+
+    if(e->intersects(&ned)){
+        p2[i]= new Point(e->intersectionPoint(&ned));
+        side[i] = 0;
+        opposite[i][0]=p[4];
+        opposite[i][1]=p[6];
+        same[i][0]=p[2];
+        same[i++][1]=p[0];
+    }
+    if(e->intersects(&eed)){
+        p2[i]= new Point(e->intersectionPoint(&eed));
+        side[i] = 1;
+        opposite[i][0]=p[0];
+        opposite[i][1]=p[6];
+        same[i][0]=p[2];
+        same[i++][1]=p[4];
+    }
+    if(e->intersects(&sed)){
+        p2[i]= new Point(e->intersectionPoint(&sed));
+        side[i] = 2;
+        opposite[i][0]=p[0];
+        opposite[i][1]=p[2];
+        same[i][0]=p[6];
+        same[i++][1]=p[4];
+    }
+    if(e->intersects(&wed)){
+        p2[i]= new Point(e->intersectionPoint(&wed));
+        side[i] = 3;
+        opposite[i][0]=p[2];
+        opposite[i][1]=p[4];
+        same[i][0]=p[0];
+        same[i++][1]=p[6];
+    }
+
+
+    if((side[0]+side[1])%2==0){//oposite borders
+        tris.push_back(Triangle(p2[0],opposite[0][0],same[0][0]));
+        tris.push_back(Triangle(p2[0],opposite[0][1],same[0][1]));
+
+        tris.push_back(Triangle(p2[0],p2[1],opposite[0][0]));
+        tris.push_back(Triangle(p2[0],p2[1],opposite[0][1]));
+    }else//neigh borders
+    {
+        Edge a = Edge(p2[1],opposite[0][1]);
+        if(Edge(p2[0],opposite[0][0]).intersects(&a)){
+            tris.push_back(Triangle(p2[0],p2[1],opposite[0][1]));
+            tris.push_back(Triangle(p2[0],opposite[0][1],same[0][1]));
+            tris.push_back(Triangle(p2[0],p2[1],same[0][0]));
+        }else
+        {
+            tris.push_back(Triangle(p2[0],p2[1],opposite[0][0]));
+            tris.push_back(Triangle(p2[0],opposite[0][0],same[0][0]));
+            tris.push_back(Triangle(p2[0],p2[1],same[0][1]));
+        }
+        tris.push_back(Triangle(p2[1],opposite[0][1],opposite[0][0]));
+    }
+
+
 
 
 }
@@ -691,8 +765,6 @@ void QuadTree::draw(DrawingArea *area)
     for(int i=0;i<tris.size();++i)
         tris[i].draw(area);
     area->stopStep();
-
-
 }
 
 void QuadTree::insertPolygon(Polygon* poly)

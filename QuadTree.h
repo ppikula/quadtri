@@ -83,7 +83,6 @@ private:
     EQuadrant whichQuadrant(const Point& p) const;
     bool contains(Edge* e) const;
     Point itersectionP(Edge* e);
-
 };
 
 
