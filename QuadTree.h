@@ -12,7 +12,7 @@ struct Edge;
 struct Point
 {
     Point():x(0),y(0),next(0),prev(0){}
-    Point(double x,double y):x(x),y(y),next(0),prev(0){}
+    Point(double x,double y):next(0),prev(0),x(x),y(y){}
 
     Edge *next,*prev;
     double x,y;
