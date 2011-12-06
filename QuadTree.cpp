@@ -4,6 +4,7 @@
 #include <queue>
 #include <algorithm>
 #include "Triangulator.h"
+#include "DrawingStep.h"
 
 uint QuadTreeNode::MAX_LEVEL = 1000;
 
@@ -53,7 +54,7 @@ void Triangle::draw(DrawingArea* area)
     QGraphicsLineItem* l2 = new QGraphicsLineItem(QLineF(b->x,b->y,c->x,c->y));
     QGraphicsLineItem* l3 = new QGraphicsLineItem(QLineF(c->x,c->y,a->x,a->y));
 
-    QPen pen(Qt::cyan);
+    QPen pen(QColor(191,190,255));
     pen.setWidth(3);
     l1->setPen(pen);
     l2->setPen(pen);
@@ -225,10 +226,13 @@ QuadTreeNode::EQuadrant QuadTreeNode::whichQuadrant(const Point& p) const
 {
     bool x2 = p.x >= lu_corner.x+size/2;
     bool y2 = p.y >= lu_corner.y+size/2;
+
     if(!x2 && !y2)return EQ_NW;
     else if(x2 && y2) return EQ_SE;
     else if(x2 && !y2) return EQ_NE;
     else if(y2 && !x2) return EQ_SW;
+
+    throw "Hahahahhaha! HaHa... Ha...";
 }
 
 void QuadTreeNode::insert(Point* p)
@@ -295,6 +299,7 @@ bool QuadTreeNode::contains(Edge* e) const
 
 Point QuadTreeNode::itersectionP(Edge* e)
 {
+    Q_UNUSED(e);
 
 }
 
@@ -329,7 +334,6 @@ void QuadTreeNode::upadteNeighbours()
             if(parent->S && !parent->S->isLeaf())   S=parent->S->NW.data();
             if(parent->W && !parent->W->isLeaf())   W=parent->W->SE.data();
         }
-
     }
 }
 
@@ -362,7 +366,6 @@ void QuadTreeNode::draw(DrawingArea *area)
     }else{
         QPen pen2(Qt::red);
 
-
         if(insertedPoint){
             Point pts[4]={lu_corner,
                           Point(lu_corner.x+size,lu_corner.y),
@@ -370,24 +373,24 @@ void QuadTreeNode::draw(DrawingArea *area)
                           Point(lu_corner.x,lu_corner.y+size)};
             Edge  edg[4];
 
-            for(int i=0;i<4;++i){
-                edg[i].b=&pts[i];
-                edg[i].e=&pts[(i+1)%4];
+//            for(int i=0;i<4;++i){
+//                edg[i].b=&pts[i];
+//                edg[i].e=&pts[(i+1)%4];
 
-                if (insertedPoint->next && edg[i].intersects(insertedPoint->next)){
-                    Point pp=insertedPoint->next->intersectionPoint(&edg[i]);
-                    QGraphicsRectItem *r = new QGraphicsRectItem(pp.x-5,pp.y-5,10,10);
-                    r->setPen(pen2);
-                    area->addToQueue(r);
-                }
+//                if (insertedPoint->next && edg[i].intersects(insertedPoint->next)){
+//                    Point pp=insertedPoint->next->intersectionPoint(&edg[i]);
+//                    QGraphicsRectItem *r = new QGraphicsRectItem(pp.x-5,pp.y-5,10,10);
+//                    r->setPen(pen2);
+//                    area->addToQueue(r);
+//                }
 
-                if (insertedPoint->prev && edg[i].intersects(insertedPoint->prev)){
-                    Point pp=insertedPoint->prev->intersectionPoint(&edg[i]);
-                    QGraphicsRectItem *r = new QGraphicsRectItem(pp.x-5,pp.y-5,10,10);
-                    r->setPen(pen2);
-                    area->addToQueue(r);
-                }
-            }
+//                if (insertedPoint->prev && edg[i].intersects(insertedPoint->prev)){
+//                    Point pp=insertedPoint->prev->intersectionPoint(&edg[i]);
+//                    QGraphicsRectItem *r = new QGraphicsRectItem(pp.x-5,pp.y-5,10,10);
+//                    r->setPen(pen2);
+//                    area->addToQueue(r);
+//                }
+//            }
 
 
         }
@@ -752,7 +755,7 @@ void QuadTree::applyEdgeTriangulation(QuadTreeNode *n)
 
 void QuadTree::draw(DrawingArea *area)
 {
-    area->startStep(1);
+    area->startStep(DrawingStep::QUADRANT);
 
     QGraphicsRectItem* quad=new QGraphicsRectItem(QRectF(root->lu_corner.x,root->lu_corner.y,
                                                          root->size,root->size));
@@ -762,7 +765,7 @@ void QuadTree::draw(DrawingArea *area)
     root->draw(area);
     area->stopStep();
 
-    area->startStep(1);
+    area->startStep(DrawingStep::TRIANGLE);
     for(int i=0;i<tris.size();++i)
         tris[i].draw(area);
     area->stopStep();

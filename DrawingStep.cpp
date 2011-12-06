@@ -1,5 +1,4 @@
 #include "DrawingStep.h"
 
-DrawingStep::DrawingStep(qreal value, QString description):QGraphicsItemGroup(),value(value),
-    description(description){
+DrawingStep::DrawingStep(StepType type):QObject(),QGraphicsItemGroup(),type(type){
 }
