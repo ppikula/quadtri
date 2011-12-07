@@ -8,8 +8,8 @@
 
 uint QuadTreeNode::MAX_LEVEL = 1000;
 
-static int direction(const Point& a, const Point& b,const Point& c){
-    double res = (a.x-c.x)*(b.y-c.y) -(b.x-c.x)*(a.y-c.y);
+int Edge::getSide(Point *c){
+    double res = (b->x-c->x)*(e->y-c->y) -(e->x-c->x)*(b->y-c->y);
     if( res< 0 ) return -1;
     else if (res > 0 ) return 1;
     return 0;
@@ -17,8 +17,8 @@ static int direction(const Point& a, const Point& b,const Point& c){
 
 bool Edge::intersects(Edge* e)
 {
-    if( direction(*b,*(this->e),*(e->b)) == direction(*b,*(this->e),*(e->e) ))return false;
-    if( direction(*(e->b),*(e->e),*(this->b)) == direction(*(e->b),*(e->e),*(this->e))) return false;
+    if( getSide(e->b) == getSide(e->e))return false;
+    if( e->getSide(this->b)== e->getSide(this->e)) return false;
     return true;
 }
 
@@ -75,6 +75,20 @@ QuadTreeNode::QuadTreeNode(const Point& p, double size):lu_corner(p),level(0),si
     S=0;
     W=0;
     E=0;
+
+    corners[P_NW] = Point(p);
+    corners[P_NE] = Point(p.x+size,p.y);
+    corners[P_SE] = Point(p.x+size,p.y+size);
+    corners[P_SW] = Point(p.x,p.y+size);
+
+    borders[P_N] = Edge(&corners[P_NW],&corners[P_NE]);
+    borders[P_E] = Edge(&corners[P_NE],&corners[P_SE]);
+    borders[P_S] = Edge(&corners[P_SE],&corners[P_SW]);
+    borders[P_W] = Edge(&corners[P_SW],&corners[P_NW]);
+
+    crossEdges = new Edge*[2];
+    crossEdges[0] = NULL;
+    crossEdges[1] = NULL;
 }
 
 QuadTreeNode::QuadTreeNode(const Point& p, double size,QuadTreeNode* parent,EQuadrant type):lu_corner(p),size(size),parent(parent)
@@ -88,6 +102,20 @@ QuadTreeNode::QuadTreeNode(const Point& p, double size,QuadTreeNode* parent,EQua
     S=0;
     W=0;
     E=0;
+
+    corners[P_NW] = Point(p);
+    corners[P_NE] = Point(p.x+size,p.y);
+    corners[P_SE] = Point(p.x+size,p.y+size);
+    corners[P_SW] = Point(p.x,p.y+size);
+
+    borders[P_N] = Edge(&corners[P_NW],&corners[P_NE]);
+    borders[P_E] = Edge(&corners[P_NE],&corners[P_SE]);
+    borders[P_S] = Edge(&corners[P_SE],&corners[P_SW]);
+    borders[P_W] = Edge(&corners[P_SW],&corners[P_NW]);
+
+    crossEdges = new Edge*[2];
+    crossEdges[0] = NULL;
+    crossEdges[1] = NULL;
     this->type=type;
 }
 
@@ -133,7 +161,6 @@ void QuadTreeNode::subdivide()
                 if(type==EQ_NW)W=parent->W->NE.data();
                 if(type==EQ_SW)W=parent->W->SE.data();
             }
-
         }
 
         //filling obvious neighbours
@@ -263,6 +290,8 @@ void QuadTreeNode::insert(Edge* e)
 {
     if( isLeaf() && !insertedEdge && !insertedPoint ){
         insertedEdge=e;
+        Point *points = findItersectionPoints(e);
+        crossEdges[0] = new Edge(&points[0],&points[1]);
     }else{
         if(!insertedPoint)//if in leaf does not exist point
         {
@@ -297,10 +326,16 @@ bool QuadTreeNode::contains(Edge* e) const
     return false;
 }
 
-Point QuadTreeNode::itersectionP(Edge* e)
+Point * QuadTreeNode::findItersectionPoints(Edge* e)
 {
-    Q_UNUSED(e);
-
+    Point *points = new Point[2];
+    int j=0;
+    for(int i=0;i<4;i++){
+        if(j==2) break;
+        if(borders[i].intersects(e))
+            points[j++] = borders[i].intersectionPoint(e);
+    }
+    return points;
 }
 
 void QuadTreeNode::extractNeighbours()

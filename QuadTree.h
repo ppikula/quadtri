@@ -1,6 +1,6 @@
 #ifndef QUADTREE_H
 #define QUADTREE_H
-#include <QScopedPointer>
+#include <QtGui>
 #include <vector>
 #include <utility>
 
@@ -28,6 +28,8 @@ struct Edge
     Point *b,*e;
     bool intersects(Edge* e);
     Point intersectionPoint(Edge* e);
+private:
+    int getSide(Point *p);
 };
 
 
@@ -50,11 +52,32 @@ struct QuadTreeNode
         EQ_SW
     };
 
+    enum Corner {
+        P_NW,
+        P_NE,
+        P_SE,
+        P_SW
+    };
+
+    enum Directions{
+        P_N,
+        P_E,
+        P_S,
+        P_W
+    };
+
+
     static uint MAX_LEVEL;//maximum tree level
 
     EQuadrant type;
     Point* insertedPoint;
     Edge* insertedEdge;
+
+    Point corners[4];
+    Edge borders[4];
+
+    Edge **crossEdges;
+    QList<Triangle> triangles;
 
     Point lu_corner;
     uint level;
@@ -68,7 +91,6 @@ struct QuadTreeNode
     QuadTreeNode(const Point&p,double size,QuadTreeNode* parent,EQuadrant type);
 
     void insert(Point* p);
-    //FIXME: criterion for subdivision apply when there is no point in quadrant
     void insert(Edge* e);
     void subdivide();
     bool isLeaf();
@@ -82,10 +104,9 @@ private:
     void extractNeighbours();
     EQuadrant whichQuadrant(const Point& p) const;
     bool contains(Edge* e) const;
-    Point itersectionP(Edge* e);
+    Point* findItersectionPoints(Edge* e);
+
 };
-
-
 
 class QuadTree
 {
