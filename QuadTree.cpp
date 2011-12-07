@@ -72,15 +72,7 @@ void Triangle::draw(DrawingArea* area)
 
 ///QuadTree Node
 
-QuadTreeNode::QuadTreeNode(const Point& p, double size):lu_corner(p),level(0),size(size),parent(0)
-{
-    insertedPoint=0;
-    insertedEdge=0;
-
-    N=0;
-    S=0;
-    W=0;
-    E=0;
+void QuadTreeNode::initialize(const Point &p,double size,CornerPoint *corners,BorderPoint *borderPoints,Edge *borders,Edge ***crossEdges){
 
     corners[P_NW] = CornerPoint(p.x,p.y);
     corners[P_NE] = CornerPoint(p.x+size,p.y);
@@ -134,9 +126,22 @@ QuadTreeNode::QuadTreeNode(const Point& p, double size):lu_corner(p),level(0),si
     borderPoints[P_W].oppositeRight= &corners[P_SE];
 
 
-    crossEdges = new Edge*[2];
-    crossEdges[0] = NULL;
-    crossEdges[1] = NULL;
+    *crossEdges = new Edge*[2];
+    (*crossEdges)[0] = NULL;
+    (*crossEdges)[1] = NULL;
+}
+
+QuadTreeNode::QuadTreeNode(const Point& p, double size):lu_corner(p),level(0),size(size),parent(0)
+{
+    insertedPoint=NULL;
+    insertedEdge=NULL;
+
+    N=0;
+    S=0;
+    W=0;
+    E=0;
+    initialize(p,size,corners,borderPoints,borders,&crossEdges);
+
 }
 
 QuadTreeNode::QuadTreeNode(const Point& p, double size,QuadTreeNode* parent,EQuadrant type):lu_corner(p),size(size),parent(parent)
@@ -150,64 +155,9 @@ QuadTreeNode::QuadTreeNode(const Point& p, double size,QuadTreeNode* parent,EQua
     S=0;
     W=0;
     E=0;
+    initialize(p,size,corners,borderPoints,borders,&crossEdges);
 
 
-    corners[P_NW] = CornerPoint(p.x,p.y);
-    corners[P_NE] = CornerPoint(p.x+size,p.y);
-    corners[P_SE] = CornerPoint(p.x+size,p.y+size);
-    corners[P_SW] = CornerPoint(p.x,p.y+size);
-
-    borderPoints[P_N] = BorderPoint(p.x+size/2,p.y);
-    borderPoints[P_E] = BorderPoint(p.x+size,p.y+size/2);
-    borderPoints[P_S] = BorderPoint(p.x+size/2,p.y+size);
-    borderPoints[P_W] = BorderPoint(p.x,p.y+size/2);
-
-    borders[P_N] = Edge(&corners[P_NW],&corners[P_NE]);
-    borders[P_E] = Edge(&corners[P_NE],&corners[P_SE]);
-    borders[P_S] = Edge(&corners[P_SE],&corners[P_SW]);
-    borders[P_W] = Edge(&corners[P_SW],&corners[P_NW]);
-
-    corners[P_NW].left = &corners[P_NE];
-    corners[P_NW].right = &corners[P_SW];
-    corners[P_NW].opposite = &corners[P_SE];
-
-    corners[P_NE].left = &corners[P_SE];
-    corners[P_NE].right = &corners[P_NW];
-    corners[P_NE].opposite = &corners[P_SW];
-
-    corners[P_SE].left = &corners[P_SW];
-    corners[P_SE].right = &corners[P_NE];
-    corners[P_SE].opposite = &corners[P_NW];
-
-    corners[P_SW].left = &corners[P_NW];
-    corners[P_SW].right = &corners[P_SE];
-    corners[P_SW].opposite = &corners[P_NE];
-
-    borderPoints[P_N].left= &corners[P_NE];
-    borderPoints[P_N].right= &corners[P_NW];
-    borderPoints[P_N].oppositeLeft= &corners[P_SE];
-    borderPoints[P_N].oppositeRight= &corners[P_SW];
-
-    borderPoints[P_E].left= &corners[P_SE];
-    borderPoints[P_E].right= &corners[P_NE];
-    borderPoints[P_E].oppositeLeft= &corners[P_SW];
-    borderPoints[P_E].oppositeRight= &corners[P_NW];
-
-    borderPoints[P_S].left= &corners[P_SW];
-    borderPoints[P_S].right= &corners[P_SE];
-    borderPoints[P_S].oppositeLeft= &corners[P_NW];
-    borderPoints[P_S].oppositeRight= &corners[P_NE];
-
-    borderPoints[P_W].left= &corners[P_NW];
-    borderPoints[P_W].right= &corners[P_SW];
-    borderPoints[P_W].oppositeLeft= &corners[P_NE];
-    borderPoints[P_W].oppositeRight= &corners[P_SE];
-
-
-
-    crossEdges = new Edge*[2];
-    crossEdges[0] = NULL;
-    crossEdges[1] = NULL;
     this->type=type;
 }
 

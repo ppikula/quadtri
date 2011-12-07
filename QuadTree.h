@@ -103,6 +103,7 @@ struct QuadTreeNode
     QScopedPointer<QuadTreeNode> NW,NE,SE,SW;//subnodes
     QuadTreeNode* N,*E,*S,*W;//neighbours
 
+    static void initialize(const Point &p,double size,CornerPoint *corners,BorderPoint *borderPoints,Edge *borders,Edge ***crossEdges);
     QuadTreeNode(const Point&p,double size);
     QuadTreeNode(const Point&p,double size,QuadTreeNode* parent,EQuadrant type);
 
