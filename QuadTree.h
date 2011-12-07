@@ -9,13 +9,28 @@ class DrawingArea;
 class Polygon;
 struct Edge;
 
-struct Point
+class Point
 {
-    Point():x(0),y(0),next(0),prev(0){}
+public:
+    Point():next(0),prev(0),x(0),y(0){}
     Point(double x,double y):next(0),prev(0),x(x),y(y){}
 
     Edge *next,*prev;
     double x,y;
+};
+
+class CornerPoint:public Point {
+public:
+    CornerPoint():Point(),left(0),right(0),opposite(0){}
+    CornerPoint(double x,double y):Point(x,y),left(0),right(0),opposite(0){}
+    CornerPoint *left,*right,*opposite;
+};
+
+class BorderPoint:public Point {
+public:
+    BorderPoint():Point(),left(0),right(0),oppositeLeft(0),oppositeRight(0){}
+    BorderPoint(double x,double y):Point(x,y),left(0),right(0),oppositeRight(0){}
+    Point *left,*right,*oppositeLeft,*oppositeRight;
 };
 
 //TODO: indices or pointers?
@@ -27,8 +42,8 @@ struct Edge
     void setPointsPtr(){b->next=this;e->prev=this;}
     Point *b,*e;
     bool intersects(Edge* e);
+    bool intersects(Point *p,Point *p2);
     Point intersectionPoint(Edge* e);
-private:
     int getSide(Point *p);
 };
 
@@ -66,15 +81,16 @@ struct QuadTreeNode
         P_W
     };
 
-
     static uint MAX_LEVEL;//maximum tree level
 
     EQuadrant type;
     Point* insertedPoint;
     Edge* insertedEdge;
 
-    Point corners[4];
+    CornerPoint corners[4];
+    BorderPoint borderPoints[4];
     Edge borders[4];
+
 
     Edge **crossEdges;
     QList<Triangle> triangles;
@@ -135,6 +151,8 @@ public:
 
     void generatePointTree(Point** p,QuadTreeNode*n ,int type,int start);
     void draw(DrawingArea *area);
+private:
+    void calculateTrianglesForEdgeCase(Edge *e,Point *p,Point *sp,Point *op,BorderPoint **otherBP,int othersSize);
 };
 
 #endif // QUADTREE_H
