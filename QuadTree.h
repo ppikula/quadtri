@@ -122,6 +122,7 @@ private:
     EQuadrant whichQuadrant(const Point& p) const;
     bool contains(Edge* e) const;
     Point* findItersectionPoints(Edge* e);
+    void enforce21(QuadTreeNode* node);
 
 };
 
@@ -154,6 +155,7 @@ public:
     void draw(DrawingArea *area);
 private:
     void calculateTrianglesForEdgeCase(Edge *e,Point *p,Point *sp,Point *op,BorderPoint **otherBP,int othersSize);
+
 };
 
 #endif // QUADTREE_H

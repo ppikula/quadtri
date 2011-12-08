@@ -171,40 +171,10 @@ void QuadTreeNode::subdivide()
         SE.reset(new QuadTreeNode(Point(lu_corner.x+s2,lu_corner.y+s2),s2,this,EQ_SE));
         SW.reset(new QuadTreeNode(Point(lu_corner.x,lu_corner.y+s2),s2,this,EQ_SW));
 
-        if(N && N->depth()<level)N->subdivide();
+        /*if(N && N->depth()<level)N->subdivide();
         if(E && E->depth()<level)E->subdivide();
         if(S && S->depth()<level)S->subdivide();
-        if(W && W->depth()<level)W->subdivide();
-
-        //non root
-        if(parent)
-        {
-            if( (type==EQ_SE || type==EQ_SW) && parent->S && parent->S->depth()<level )
-            {
-                parent->S->subdivide();
-                if(type==EQ_SE)S=parent->S->NE.data();
-                if(type==EQ_SW)S=parent->S->NW.data();
-            }
-            if( (type==EQ_NE || type==EQ_NW) && parent->N && parent->N->depth()<level )
-            {
-                parent->N->subdivide();
-                if(type==EQ_NE)N=parent->N->SE.data();
-                if(type==EQ_NW)N=parent->N->SW.data();
-            }
-            if( (type==EQ_SE || type==EQ_NE) && parent->E && parent->E->depth()<level )
-            {
-                parent->E->subdivide();
-                if(type==EQ_NE)E=parent->E->NW.data();
-                if(type==EQ_SE)E=parent->E->SW.data();
-            }
-            if( (type==EQ_NW || type==EQ_SW) && parent->W && parent->W->depth()<level )
-            {
-                parent->W->subdivide();
-                if(type==EQ_NW)W=parent->W->NE.data();
-                if(type==EQ_SW)W=parent->W->SE.data();
-            }
-        }
-
+        if(W && W->depth()<level)W->subdivide();*/
         //filling obvious neighbours
         NW->E=NE.data();
         NW->S=SW.data();
@@ -218,26 +188,66 @@ void QuadTreeNode::subdivide()
         SW->N=NW.data();
         SW->E=SE.data();
 
-        //other neighbours
+        //non root
         if(parent)
         {
-            /*if( parent->N  && parent->N->depth()==level)
+            if( (type==EQ_SE || type==EQ_SW) && parent->S  )
             {
-                if(type==EQ_NW)N=parent->SW.data();
-                if(type==EQ_NE)N=parent->SE.data();
-            }*/
+                if(parent->S->depth()<level)parent->S->subdivide();
+                if(type==EQ_SE){
+                    S=parent->S->NE.data();
+                    parent->S->NE->N=this;
+                }
+                if(type==EQ_SW){
+                    S=parent->S->NW.data();
+                    parent->S->NW->N=this;
+                }
+            }
+            if( (type==EQ_NE || type==EQ_NW) && parent->N  )
+            {
+                if(parent->N->depth()<level) parent->N->subdivide();
+                if(type==EQ_NE)
+                {
+                    N=parent->N->SE.data();
+                    parent->N->SE->S=this;
+                }
+                if(type==EQ_NW)
+                {
+                    N=parent->N->SW.data();
+                    parent->N->SW->S=this;
+                }
+            }
+            if( (type==EQ_SE || type==EQ_NE) && parent->E  )
+            {
+                if(parent->E->depth()<level) parent->E->subdivide();
+                if(type==EQ_NE)
+                {
+                    E=parent->E->NW.data();
+                    parent->E->NW->W=this;
+                }
+                if(type==EQ_SE)
+                {
+                    E=parent->E->SW.data();
+                    parent->E->SW->W=this;
+                }
+
+            }
+            if( (type==EQ_NW || type==EQ_SW) && parent->W )
+            {
+                if(parent->W->depth()<level)parent->W->subdivide();
+                if(type==EQ_NW)
+                {
+                    W=parent->W->NE.data();
+                    parent->W->NE->E=this;
+                }
+                if(type==EQ_SW){
+                    W=parent->W->SE.data();
+                    parent->W->NW->E=this;
+                }
+            }
         }
 
 
-        if(N && N->depth()>=level+1)
-        {
-            //NW->N = N->SW.data();
-            //NE->N = N->SE.data();
-        }
-
-        /*if(S && W->depth()>=level+1){ NW->N=N->SW.data();NE->N=N->SE.data(); }
-        if(E && E->depth()>=level+1){ NW->N=N->SW.data();NE->N=N->SE.data(); }
-        if(W && W->depth()>=level+1){ NW->N=N->SW.data();NE->N=N->SE.data(); }*/
 
 
 
@@ -319,7 +329,7 @@ void QuadTreeNode::insert(Point* p)
     if( isLeaf() && !insertedPoint ){
         insertedPoint=p;
     }else {
-        subdivide();//wont subdivide quadrant already divided
+        if(insertedPoint)subdivide();//wont subdivide quadrant already divided
         switch(whichQuadrant(*p))
         {
         case EQ_NW:
@@ -368,13 +378,17 @@ bool QuadTreeNode::contains(Edge* e) const
     for(int i=0;i<4;++i){
         edg[i].b=&pts[i];
         edg[i].e=&pts[(i+1)%4];
-        if (edg[i].intersects(e)) return true;
+        if (edg[i].intersects(e)){
+            if(i==1 && (e->b->x==lu_corner.x+size || e->e->x==lu_corner.x+size) ) {}
+            else if (i==2 && (e->b->y==lu_corner.y+size || e->e->y==lu_corner.y+size) ) {}
+            else return true;
+        }
     }
 
-    if( (e->b->x >= lu_corner.x &&  e->b->x <= lu_corner.x+size &&
-         e->b->y >= lu_corner.y &&  e->b->y <= lu_corner.y+size)&&
-            (e->e->x >= lu_corner.x &&  e->e->x <= lu_corner.x+size &&
-             e->e->y >= lu_corner.y &&  e->e->y <= lu_corner.y+size))return true;
+    if( (e->b->x >= lu_corner.x &&  e->b->x < lu_corner.x+size &&
+         e->b->y >= lu_corner.y &&  e->b->y < lu_corner.y+size)&&
+            (e->e->x >= lu_corner.x &&  e->e->x < lu_corner.x+size &&
+             e->e->y >= lu_corner.y &&  e->e->y < lu_corner.y+size))return true;
 
     return false;
 }
@@ -485,6 +499,14 @@ void QuadTreeNode::draw(DrawingArea *area)
     }
 }
 
+void QuadTreeNode::enforce21(QuadTreeNode* node)
+{
+    int d_nw = node->NW->depth();
+    int d_ne = node->NE->depth();
+    int d_se = node->SE->depth();
+    int d_sw = node->SW->depth();
+}
+
 /////////////////////////////////////////////////////////////
 // QuadTree
 /////////////////////////////////////////////////////////////
@@ -555,6 +577,7 @@ void QuadTree::Triangulate()
     //TODO: mesh opitimizations
 
 }
+
 
 void QuadTree::applyTemplateTriangulation(QuadTreeNode* n)
 {
