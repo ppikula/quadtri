@@ -22,7 +22,7 @@ int main(int argc, char *argv[])
 
     QVBoxLayout *lay = new QVBoxLayout();
     lay->addWidget(area);
-    lay->addWidget(triangualteBut);
+    //lay->addWidget(triangualteBut);
 
     QWidget window;
     window.setLayout(lay);
@@ -31,6 +31,7 @@ int main(int argc, char *argv[])
     Triangulator *t = new Triangulator(area);
 
     QObject::connect(triangualteBut,SIGNAL(clicked()),t,SLOT(triangulate()));
+    t->triangulate();
 
     return a.exec();
 }
