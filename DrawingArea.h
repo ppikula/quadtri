@@ -43,7 +43,8 @@ private:
     QGraphicsView *view;
     DrawingScene *scene;
     QPushButton *startStopBut,*startStopInner;
-    QCheckBox *quadrantCHBox,*trianglesCHBox;
+    QGroupBox *groupBox;
+    QRadioButton *noneRadio,*quadrantRadio,*trianglesRadio;
 
     /* Logic items */
     Polygon *basePolygon;
