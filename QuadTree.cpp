@@ -499,14 +499,6 @@ void QuadTreeNode::draw(DrawingArea *area)
     }
 }
 
-void QuadTreeNode::enforce21(QuadTreeNode* node)
-{
-    int d_nw = node->NW->depth();
-    int d_ne = node->NE->depth();
-    int d_se = node->SE->depth();
-    int d_sw = node->SW->depth();
-}
-
 /////////////////////////////////////////////////////////////
 // QuadTree
 /////////////////////////////////////////////////////////////
@@ -970,7 +962,6 @@ void QuadTree::insertPolygon(Polygon* poly)
         root->insert(&edges.back());
     }
 
-    int a=0;
 }
 
 void QuadTree::insert(const Point& p)

@@ -122,7 +122,6 @@ private:
     EQuadrant whichQuadrant(const Point& p) const;
     bool contains(Edge* e) const;
     Point* findItersectionPoints(Edge* e);
-    void enforce21(QuadTreeNode* node);
 
 };
 
