@@ -346,7 +346,7 @@ void QuadTreeNode::insert(Edge* e)
         Point *points = findItersectionPoints(e);
         crossEdges[0] = new Edge(&points[0],&points[1]);
     }else{
-        if(!insertedPoint)//if in leaf does not exist point
+
         {
             subdivide();//wont subdivide quadrant already divided
             if(NW->contains(e))NW->insert(e);
