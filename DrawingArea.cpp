@@ -9,15 +9,18 @@ DrawingArea::DrawingArea(QWidget *parent) :
     scene = new DrawingScene(0, 0, 600, 600);
     scene->addItem(basePolygon);
 
-    basePolygon->addBoundaryPoint(QPointF(100,100));
-    basePolygon->addBoundaryPoint(QPointF(200,200));
     basePolygon->addBoundaryPoint(QPointF(100,200));
+    basePolygon->addBoundaryPoint(QPointF(200,300));
+    basePolygon->addBoundaryPoint(QPointF(300,300));
+
+    basePolygon->addBoundaryPoint(QPointF(50,100));
+
+
 
     view = new QGraphicsView(scene);
     view->setRenderHint(QPainter::Antialiasing);
     view->setViewportUpdateMode(QGraphicsView::BoundingRectViewportUpdate);
     view->setBackgroundBrush(QColor(0,0,0));
-
 
     startStopBut =new QPushButton();
     startStopBut->setText("Open");
@@ -25,21 +28,32 @@ DrawingArea::DrawingArea(QWidget *parent) :
     startStopInner = new QPushButton();
     startStopInner->setText("Add hole");
 
-    quadrantCHBox = new QCheckBox();
-    quadrantCHBox->setText("QuadTree");
-    quadrantCHBox->setChecked(true);
 
-    trianglesCHBox = new QCheckBox();
-    trianglesCHBox->setText("Triangles");
-    trianglesCHBox->setChecked(true);
+    groupBox = new QGroupBox();
+    groupBox->setTitle("View");
+
+    noneRadio= new QRadioButton();
+    noneRadio->setText("Poly");
+
+    quadrantRadio = new QRadioButton();
+    quadrantRadio->setText("QuadTree");
+
+    trianglesRadio = new QRadioButton();
+    trianglesRadio->setText("Triangles");
+    trianglesRadio->setChecked(true);
+
+
 
     QHBoxLayout *buttonsLay = new QHBoxLayout();
-    buttonsLay->addWidget(startStopBut);
-    buttonsLay->addWidget(startStopInner);
+    //buttonsLay->addWidget(startStopBut);
+   // buttonsLay->addWidget(startStopInner);
 
     QHBoxLayout *viewLay = new QHBoxLayout();
-    viewLay->addWidget(quadrantCHBox);
-    viewLay->addWidget(trianglesCHBox);
+    viewLay->addWidget(noneRadio);
+    viewLay->addWidget(quadrantRadio);
+    viewLay->addWidget(trianglesRadio);
+    groupBox->setLayout(viewLay);
+
 
 
     QVBoxLayout *bottomLay = new QVBoxLayout();
@@ -47,8 +61,8 @@ DrawingArea::DrawingArea(QWidget *parent) :
 
     QVBoxLayout *lay = new QVBoxLayout();
     lay->addWidget(view);
-    lay->addLayout(viewLay);
-    lay->addLayout(bottomLay);
+    lay->addWidget(groupBox);
+    lay->addWidget(startStopBut);
     setLayout(lay);
 
     connect(basePolygon,SIGNAL(polyChanged()),this,SLOT(polyUpdate()));
@@ -56,8 +70,10 @@ DrawingArea::DrawingArea(QWidget *parent) :
     connect(startStopBut,SIGNAL(clicked()),this,SLOT(startStopPoly()));
     connect(startStopInner,SIGNAL(clicked()),this,SLOT(startStopInnerPloly()));
 
-    connect(quadrantCHBox,SIGNAL(clicked()),this,SLOT(selectedViewsChanged()));
-    connect(trianglesCHBox,SIGNAL(clicked()),this,SLOT(selectedViewsChanged()));
+
+    connect(noneRadio,SIGNAL(clicked()),this,SLOT(selectedViewsChanged()));
+    connect(quadrantRadio,SIGNAL(clicked()),this,SLOT(selectedViewsChanged()));
+    connect(trianglesRadio,SIGNAL(clicked()),this,SLOT(selectedViewsChanged()));
 
 }
 
@@ -120,14 +136,12 @@ void DrawingArea::selectedViewsChanged(){
     foreach(DrawingStep *step,renderQueue){
         switch(step->type){
         case DrawingStep::QUADRANT:
-                step->setVisible(quadrantCHBox->checkState());
-
+            step->setVisible(quadrantRadio->isChecked());
             break;
         case DrawingStep::TRIANGLE:
-                step->setVisible(trianglesCHBox->checkState());
+                step->setVisible(trianglesRadio->isChecked());
             break;
         }
-
     }
     scene->update();
 }
