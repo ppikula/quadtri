@@ -7,11 +7,14 @@
 #include "DrawingStep.h"
 class DrawingArea : public QWidget
 {
+
+
     Q_OBJECT
-public:    
+
+public:
     explicit DrawingArea(QWidget *parent = 0);
 
-    void startStep(float time);
+    void startStep(DrawingStep::StepType type);
     void stopStep();
     void addToQueue(QGraphicsItem *item);
 
@@ -25,7 +28,7 @@ public:
 private slots:
     void startStopPoly();
     void startStopInnerPloly();
-    void viewSliderChanged(int v);
+    void selectedViewsChanged();
 
 signals:
     void polyChanged(Polygon *poly,QList<Polygon*> holes);
@@ -40,7 +43,7 @@ private:
     QGraphicsView *view;
     DrawingScene *scene;
     QPushButton *startStopBut,*startStopInner;
-    QSlider *slider;
+    QCheckBox *quadrantCHBox,*trianglesCHBox;
 
     /* Logic items */
     Polygon *basePolygon;

@@ -25,23 +25,29 @@ DrawingArea::DrawingArea(QWidget *parent) :
     startStopInner = new QPushButton();
     startStopInner->setText("Add hole");
 
-    slider = new QSlider();
-    slider->setOrientation(Qt::Horizontal);
+    quadrantCHBox = new QCheckBox();
+    quadrantCHBox->setText("QuadTree");
+    quadrantCHBox->setChecked(true);
 
-    slider->setMinimum(0);
-    slider->setMaximum(0);
-
+    trianglesCHBox = new QCheckBox();
+    trianglesCHBox->setText("Triangles");
+    trianglesCHBox->setChecked(true);
 
     QHBoxLayout *buttonsLay = new QHBoxLayout();
     buttonsLay->addWidget(startStopBut);
     buttonsLay->addWidget(startStopInner);
 
+    QHBoxLayout *viewLay = new QHBoxLayout();
+    viewLay->addWidget(quadrantCHBox);
+    viewLay->addWidget(trianglesCHBox);
+
+
     QVBoxLayout *bottomLay = new QVBoxLayout();
-    bottomLay->addWidget(slider);
     bottomLay->addLayout(buttonsLay);
 
     QVBoxLayout *lay = new QVBoxLayout();
     lay->addWidget(view);
+    lay->addLayout(viewLay);
     lay->addLayout(bottomLay);
     setLayout(lay);
 
@@ -49,19 +55,22 @@ DrawingArea::DrawingArea(QWidget *parent) :
     connect(scene,SIGNAL(doubleClicked(QGraphicsSceneMouseEvent*)),this,SLOT(sceneDoubleCliked(QGraphicsSceneMouseEvent*)));
     connect(startStopBut,SIGNAL(clicked()),this,SLOT(startStopPoly()));
     connect(startStopInner,SIGNAL(clicked()),this,SLOT(startStopInnerPloly()));
-    connect(slider,SIGNAL(valueChanged(int)),this,SLOT(viewSliderChanged(int)));
+
+    connect(quadrantCHBox,SIGNAL(clicked()),this,SLOT(selectedViewsChanged()));
+    connect(trianglesCHBox,SIGNAL(clicked()),this,SLOT(selectedViewsChanged()));
 
 }
 
-void DrawingArea::startStep(float time){
-    renderQueue.append(new DrawingStep(time));
+void DrawingArea::startStep(DrawingStep::StepType type){
+    DrawingStep *step = new DrawingStep(type);
+    step->setVisible(false);
+    renderQueue.append(step);
+
 }
 
 void DrawingArea::stopStep(){
     scene->addItem(renderQueue.last());
-    slider->setMaximum(slider->maximum()+1);
-    slider->setValue(slider->maximum());
-    scene->update();
+    this->selectedViewsChanged();
 }
 
 void DrawingArea::addToQueue(QGraphicsItem *item){
@@ -107,12 +116,18 @@ void DrawingArea::startStopInnerPloly(){
     scene->update();
 }
 
-void DrawingArea::viewSliderChanged(int v){
-    for(int i=0;i<renderQueue.size();++i){
-        renderQueue[i]->setVisible(false);
-    }
-    for(int i=0;i<v;++i){
-        renderQueue[i]->setVisible(true);
+void DrawingArea::selectedViewsChanged(){
+    foreach(DrawingStep *step,renderQueue){
+        switch(step->type){
+        case DrawingStep::QUADRANT:
+                step->setVisible(quadrantCHBox->checkState());
+
+            break;
+        case DrawingStep::TRIANGLE:
+                step->setVisible(trianglesCHBox->checkState());
+            break;
+        }
+
     }
     scene->update();
 }
@@ -147,7 +162,6 @@ void DrawingArea::clear(){
         delete step;
     }
     renderQueue.clear();
-    slider->setMaximum(0);
 }
 
 void DrawingArea::clearAll(){
@@ -158,5 +172,4 @@ void DrawingArea::clearAll(){
     basePolygon = new Polygon();
     holes.clear();
     renderQueue.clear();
-    slider->setMaximum(0);
 }

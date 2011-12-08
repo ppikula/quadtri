@@ -32,6 +32,5 @@ int main(int argc, char *argv[])
 
     QObject::connect(triangualteBut,SIGNAL(clicked()),t,SLOT(triangulate()));
 
-
     return a.exec();
 }
