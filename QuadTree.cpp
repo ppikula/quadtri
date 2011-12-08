@@ -258,7 +258,7 @@ void QuadTreeNode::subdivide()
                 SW->insert(insertedPoint);
                 break;
             }
-            insertedPoint=NULL;
+
         }
 
         if( insertedEdge )
@@ -270,6 +270,16 @@ void QuadTreeNode::subdivide()
             if(SW->contains(e))SW->insert(e);
             insertedEdge=NULL;
         }
+
+        if(insertedPoint ){
+           Edge *e1=insertedPoint->next;
+           Edge *e2=insertedPoint->prev;
+           insertedPoint=NULL;
+
+           if( e1 )insert(e1);
+           if( e2 )insert(e2);
+        }
+
     }
 }
 
@@ -330,6 +340,7 @@ void QuadTreeNode::insert(Point* p)
 
 void QuadTreeNode::insert(Edge* e)
 {
+    if(insertedEdge==e || (insertedPoint && (insertedPoint->next==e || insertedPoint->prev==e) ))return;
     if( isLeaf() && !insertedEdge && !insertedPoint ){
         insertedEdge=e;
         Point *points = findItersectionPoints(e);
@@ -693,11 +704,13 @@ void QuadTree::generatePointTree(Point** p,QuadTreeNode*n ,int type,int start)
             Point pr = e.intersectionPoint(ip->next);
             tris.push_back(Triangle(p[start],ip,new Point(pr)));
             tris.push_back(Triangle(new Point(pr),ip,p[start+1]));
-        }if(e.intersects(ip->prev)){
+        }
+        if(e.intersects(ip->prev)){
             Point pr = e.intersectionPoint(ip->prev);
             tris.push_back(Triangle(p[start],ip,new Point(pr)));
             tris.push_back(Triangle(new Point(pr),ip,p[start+1]));
-        }else
+        }
+        if( !e.intersects(ip->prev) && !e.intersects(ip->next))
             tris.push_back(Triangle(p[start],ip,p[start+1]));
 
 
@@ -706,12 +719,15 @@ void QuadTree::generatePointTree(Point** p,QuadTreeNode*n ,int type,int start)
             Point pr = e2.intersectionPoint(ip->next);
             tris.push_back(Triangle(p[start+1],ip,new Point(pr)));
             tris.push_back(Triangle(new Point(pr),ip,p[(start+2)%8]));
-        }if(e2.intersects(ip->prev)){
+        }
+        if(e2.intersects(ip->prev)){
             Point pr = e2.intersectionPoint(ip->prev);
             tris.push_back(Triangle(p[start+1],ip,new Point(pr)));
             tris.push_back(Triangle(new Point(pr),ip,p[(start+2)%8]));
 
-        }else
+        }
+
+        if( !e2.intersects(ip->prev) && !e2.intersects(ip->next))
             tris.push_back(Triangle(p[start+1],ip,p[(start+2)%8]));
     }else
     {
@@ -721,13 +737,15 @@ void QuadTree::generatePointTree(Point** p,QuadTreeNode*n ,int type,int start)
             Point pr = e.intersectionPoint(ip->next);
             tris.push_back(Triangle(p[start],ip,new Point(pr)));
             tris.push_back(Triangle(new Point(pr),ip,p[(start+2)%8]));
-        }else if(e.intersects(ip->prev)){
+        }
+        if(e.intersects(ip->prev)){
 
             Point pr = e.intersectionPoint(ip->prev);
 
             tris.push_back(Triangle(p[start],ip,new Point(pr)));
             tris.push_back(Triangle(new Point(pr),ip,p[(start+2)%8]));
-        }else {
+        }
+        if( !e.intersects(ip->prev) && !e.intersects(ip->next)) {
             tris.push_back(Triangle(p[start],ip,p[(start+2)%8]));
         }
     }
